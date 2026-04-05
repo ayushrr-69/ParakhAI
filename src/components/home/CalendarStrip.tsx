@@ -1,0 +1,54 @@
+import { StyleSheet, View } from 'react-native';
+import { AppText } from '@/components/common/AppText';
+import { calendarDays } from '@/constants/content';
+import { theme } from '@/theme';
+
+export function CalendarStrip() {
+  return (
+    <View style={styles.container}>
+      {calendarDays.map((item) => (
+        <View key={item.key} style={[styles.dayItem, item.isSelected && styles.selectedDay]}>
+          <AppText variant='bodySmall' color={theme.colors.textDark} weight={item.isSelected ? 'semibold' : 'medium'}>
+            {item.day}
+          </AppText>
+          <View style={[styles.dateBubble, item.isSelected && styles.selectedDateBubble]}>
+            <AppText variant='body' color={item.isSelected ? theme.colors.surface : theme.colors.textDark} weight='semibold'>
+              {item.date}
+            </AppText>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radii.largeCard,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dayItem: {
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radii.pill,
+  },
+  selectedDay: {
+    backgroundColor: theme.colors.lavender,
+  },
+  dateBubble: {
+    width: 28,
+    height: 28,
+    borderRadius: theme.radii.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectedDateBubble: {
+    backgroundColor: theme.colors.nearBlack,
+  },
+});
