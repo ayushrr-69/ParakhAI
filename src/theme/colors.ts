@@ -4,6 +4,7 @@ export const colors = {
   primary: '#FF5A16',
   accentOrange: '#FF6F43',
   success: '#45C588',
+  error: '#E53935',
   lavender: '#DDC0FF',
   yellow: '#F5F378',
   cardDark: '#2F2F2F',

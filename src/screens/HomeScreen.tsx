@@ -8,12 +8,29 @@ import { TestActionCard } from '@/components/home/TestActionCard';
 import { BottomNav } from '@/components/navigation/BottomNav';
 import { DeviceStatusBar } from '@/components/system/DeviceStatusBar';
 import { homeTestActions } from '@/constants/content';
+import { routes } from '@/constants/routes';
 import { theme } from '@/theme';
 import { RootStackParamList } from '@/types/navigation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-export function HomeScreen(_: Props) {
+export function HomeScreen({ navigation }: Props) {
+  
+  const handleTestActionPress = (actionKey: string) => {
+    switch (actionKey) {
+      case 'video-analysis':
+        navigation.navigate('RecordingInstructions' as never);
+        break;
+      case 'repeat':
+        // Handle repeat last test
+        break;
+      case 'history':
+        // Navigate to test history
+        break;
+      default:
+        console.log('Unknown action:', actionKey);
+    }
+  };
   return (
     <AppShell scrollable header={<DeviceStatusBar />} footer={<BottomNav />}>
       <View style={styles.container}>
@@ -43,9 +60,13 @@ export function HomeScreen(_: Props) {
         <View style={styles.testsContainer}>
           <View style={styles.testGrid}>
             {homeTestActions.map((item, index) => (
-              <View key={item.key} style={index === homeTestActions.length - 1 ? styles.fullWidthCard : styles.halfWidthCard}>
+              <Pressable 
+                key={item.key} 
+                style={index === homeTestActions.length - 1 ? styles.fullWidthCard : styles.halfWidthCard}
+                onPress={() => handleTestActionPress(item.key)}
+              >
                 <TestActionCard title={item.title} backgroundColor={item.backgroundColor} />
-              </View>
+              </Pressable>
             ))}
           </View>
         </View>

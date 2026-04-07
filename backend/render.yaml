@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: parakhai-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 9000

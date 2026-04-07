@@ -1,0 +1,270 @@
+Starting project at C:\Users\Asus\OneDrive\Desktop\ParakhAI
+Starting Metro Bundler
+Waiting on http://localhost:8089
+Logs for your project will appear below.
+Error: Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js:8:36)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+
+Error: Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js:8:36)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+
+Error: Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js:8:36)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+
+Error: Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js:8:36)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+
+Error: Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js:8:36)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+
+Error: Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js:8:36)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+
+Error: Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js:8:36)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+
+Error: Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js:8:36)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+
+Error: Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js:8:36)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+
+Error: Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js:8:36)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+
+Error: Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js:8:36)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+
+Error: Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js:8:36)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+
+Error: Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js:8:36)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+
+Error: Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+Error: Cannot find module 'fs-extra'
+Require stack:
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js
+- C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\resolveRuntimeVersionAsync.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\Asus\OneDrive\Desktop\ParakhAI\node_modules\expo-updates\utils\build\workflow.js:8:36)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+

@@ -58,6 +58,11 @@ export const calendarDays: CalendarDay[] = [
 
 export const homeTestActions: TestAction[] = [
   {
+    key: 'video-analysis',
+    title: 'Video Analysis',
+    backgroundColor: colors.accentOrange,
+  },
+  {
     key: 'repeat',
     title: 'Repeat Last Test',
     backgroundColor: colors.success,
@@ -66,11 +71,6 @@ export const homeTestActions: TestAction[] = [
     key: 'history',
     title: 'Test History',
     backgroundColor: colors.lavender,
-  },
-  {
-    key: 'personalized',
-    title: 'Personalized Test',
-    backgroundColor: colors.accentOrange,
   },
 ];
 

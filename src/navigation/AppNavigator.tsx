@@ -7,6 +7,10 @@ import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
 import { SignInAsScreen } from '@/screens/SignInAsScreen';
 import { SignUpScreen } from '@/screens/SignUpScreen';
 import { SplashScreen } from '@/screens/SplashScreen';
+import VideoUploadScreen from '@/screens/VideoUploadScreen';
+import AnalysisResultsScreen from '@/screens/AnalysisResultsScreen';
+import HistoryScreen from '@/screens/HistoryScreen';
+import { RecordingInstructionsScreen } from '@/screens/RecordingInstructionsScreen';
 import { placeholderRouteContent, routes } from '@/constants/routes';
 import { RootStackParamList } from '@/types/navigation';
 
@@ -34,6 +38,10 @@ export function AppNavigator() {
       <Stack.Screen name={routes.signUp} component={SignUpScreen} />
       <Stack.Screen name={routes.home} component={HomeScreen} />
       <Stack.Screen name={routes.analysis} component={AnalysisScreen} />
+      <Stack.Screen name="RecordingInstructions" component={RecordingInstructionsScreen} />
+      <Stack.Screen name={routes.videoUpload} component={VideoUploadScreen} />
+      <Stack.Screen name={routes.analysisResults} component={AnalysisResultsScreen} />
+      <Stack.Screen name={routes.history} component={HistoryScreen} />
       <Stack.Screen name={routes.tests} component={PlaceholderScreen} initialParams={{ content: placeholderRouteContent[routes.tests] }} />
       <Stack.Screen name={routes.notifications} component={PlaceholderScreen} initialParams={{ content: placeholderRouteContent[routes.notifications] }} />
       <Stack.Screen name={routes.profile} component={PlaceholderScreen} initialParams={{ content: placeholderRouteContent[routes.profile] }} />

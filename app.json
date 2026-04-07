@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Sports Performance Tracker",
-    "slug": "sports-performance-tracker",
+    "name": "ParakhAI",
+    "slug": "parakh-ai-fitness",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
@@ -12,7 +12,34 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-asset"
-    ]
+      "expo-asset",
+      "expo-updates",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to record exercise videos.",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone for video recording.",
+          "recordAudioAndroid": true
+        }
+      ]
+    ],
+    "android": {
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.ayushrr.parakhaifitness"
+    },
+    "ios": {
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to record exercise videos for form analysis.",
+        "NSMicrophoneUsageDescription": "This app uses the microphone to record audio with exercise videos."
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f5e7ba9a-dc48-4804-bd8c-e45cd83f5915"
+      }
+    }
   }
 }
