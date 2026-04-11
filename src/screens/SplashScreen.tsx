@@ -12,7 +12,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
 export function SplashScreen({ navigation }: Props) {
   useEffect(() => {
-    const timeoutId = setTimeout(() => navigation.replace(routes.onboarding), 1500);
+    const timeoutId = setTimeout(() => navigation.replace(routes.onboarding), 1600);
     return () => clearTimeout(timeoutId);
   }, [navigation]);
 
@@ -24,12 +24,14 @@ export function SplashScreen({ navigation }: Props) {
           <View style={[styles.logoChip, { backgroundColor: theme.colors.success }]} />
           <View style={[styles.logoChip, { backgroundColor: theme.colors.lavender }]} />
         </View>
-        <AppText variant='hero' weight='semibold'>
-          {splashContent.brand}
-        </AppText>
-        <AppText variant='bodyLarge' color={theme.colors.placeholder}>
-          {splashContent.tagline}
-        </AppText>
+        <View style={styles.copyBlock}>
+          <AppText variant='hero' weight='semibold'>
+            {splashContent.brand}
+          </AppText>
+          <AppText variant='bodyLarge' color={theme.colors.placeholder} style={styles.tagline}>
+            {splashContent.tagline}
+          </AppText>
+        </View>
       </View>
     </AppShell>
   );
@@ -40,16 +42,25 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
   },
   logoMark: {
     flexDirection: 'row',
     gap: theme.spacing.xs,
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
   },
   logoChip: {
     width: 18,
     height: 54,
     borderRadius: theme.radii.card,
+  },
+  copyBlock: {
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  tagline: {
+    textAlign: 'center',
+    maxWidth: 280,
   },
 });

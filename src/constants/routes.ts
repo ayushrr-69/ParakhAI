@@ -6,14 +6,25 @@ export const routes = {
   signInAs: 'SignInAs',
   login: 'Login',
   signUp: 'SignUp',
+  main: 'Main',
+  roleSelection: 'RoleSelection',
+  roleSuccess: 'RoleSuccess',
+  coachDashboard: 'CoachDashboard',
   home: 'Home',
   analysis: 'Analysis',
+  videoUpload: 'VideoUpload',
+  analysisResults: 'AnalysisResults',
+  realTimeAnalysis: 'RealTimeAnalysis',
   tests: 'Tests',
   notifications: 'Notifications',
   profile: 'Profile',
+  training: 'Training',
+  recordAndUpload: 'RecordAndUpload',
   settings: 'Settings',
   more: 'More',
+  profileSetup: 'ProfileSetup',
 } as const;
+
 
 export const placeholderRouteContent: Record<string, PlaceholderContent> = {
   [routes.tests]: {

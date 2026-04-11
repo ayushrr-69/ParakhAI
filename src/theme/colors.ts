@@ -16,4 +16,6 @@ export const colors = {
   labelOverlay: 'rgba(255, 90, 22, 0.82)',
   border: '#2F2F2F',
   chartGrid: 'rgba(18, 18, 18, 0.18)',
+  error: '#FF5252',
+  successText: '#45C588',
 } as const;

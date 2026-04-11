@@ -33,4 +33,8 @@ export const typography = {
     fontSize: 28,
     lineHeight: 34,
   },
+  tiny: {
+    fontSize: 10,
+    lineHeight: 14,
+  },
 } as const;

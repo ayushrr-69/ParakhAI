@@ -50,3 +50,14 @@ export function ProfileIcon({ active }: IconProps) {
     </Svg>
   );
 }
+
+export function ArcheryIcon({ active }: IconProps) {
+  return (
+    <Svg width={22} height={22} viewBox='0 0 24 24' fill='none'>
+      <Circle cx="12" cy="12" r="9" stroke={stroke(active)} strokeWidth={1.5} />
+      <Circle cx="12" cy="12" r="5.5" stroke={stroke(active)} strokeWidth={1.5} />
+      <Circle cx="12" cy="12" r="2" fill={stroke(active)} />
+      <Path d="M17 7l5-5M21 5l1-1M20 4l1 1" stroke={stroke(active)} strokeWidth={1.5} strokeLinecap="round" />
+    </Svg>
+  );
+}

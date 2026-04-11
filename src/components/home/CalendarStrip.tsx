@@ -1,13 +1,18 @@
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/common/AppText';
-import { calendarDays } from '@/constants/content';
 import { theme } from '@/theme';
+import { CalendarDay } from '@/types/app';
 
-export function CalendarStrip() {
+type CalendarStripProps = {
+  days: CalendarDay[];
+  onSelectDay: (dayKey: string) => void;
+};
+
+export function CalendarStrip({ days, onSelectDay }: CalendarStripProps) {
   return (
     <View style={styles.container}>
-      {calendarDays.map((item) => (
-        <View key={item.key} style={[styles.dayItem, item.isSelected && styles.selectedDay]}>
+      {days.map((item) => (
+        <Pressable key={item.key} onPress={() => onSelectDay(item.key)} style={[styles.dayItem, item.isSelected && styles.selectedDay]}>
           <AppText variant='bodySmall' color={theme.colors.textDark} weight={item.isSelected ? 'semibold' : 'medium'}>
             {item.day}
           </AppText>
@@ -16,7 +21,7 @@ export function CalendarStrip() {
               {item.date}
             </AppText>
           </View>
-        </View>
+        </Pressable>
       ))}
     </View>
   );
@@ -50,5 +55,7 @@ const styles = StyleSheet.create({
   },
   selectedDateBubble: {
     backgroundColor: theme.colors.nearBlack,
+    borderRadius: 14, // Exact half of width/height for safety
+    overflow: 'hidden',
   },
 });

@@ -25,3 +25,31 @@ yarn-error.log*
 
 # OS
 Thumbs.db
+.DS_Store
+
+# Environments & Secrets
+.env
+.env.local
+.env.*
+!.env.example
+
+# Python
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Tests & Coverage
+coverage/
+.nyc_output
+
+# Bundle artifacts
+*.jsbundle
+
+# Local Config
+local.properties
+.bundle/
+node_modules/
+bin/
+out/

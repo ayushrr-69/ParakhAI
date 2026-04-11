@@ -6,11 +6,25 @@ export type RootStackParamList = {
   SignInAs: undefined;
   Login: undefined;
   SignUp: undefined;
+  Main: undefined;
+  RoleSelection: undefined;
+  RoleSuccess: { role: 'athlete' | 'coach' };
+  CoachDashboard: undefined;
   Home: undefined;
   Analysis: undefined;
-  Tests: { content: PlaceholderContent };
+  VideoUpload: { exerciseType: 'pushups' | 'squats' | 'bicep_curls' };
+  AnalysisResults: { 
+    results?: any;
+    exerciseType: 'pushups' | 'squats' | 'bicep_curls';
+    session?: any;
+  };
+  RealTimeAnalysis: { exerciseType: 'pushups' | 'squats' | 'bicep_curls' };
+  Tests: undefined;
   Notifications: { content: PlaceholderContent };
-  Profile: { content: PlaceholderContent };
+  Profile: undefined;
   Settings: { content: PlaceholderContent };
   More: { content: PlaceholderContent };
+  Training: undefined;
+  RecordAndUpload: { exerciseType: 'pushups' | 'squats' | 'bicep_curls' };
+  ProfileSetup: undefined;
 };

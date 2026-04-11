@@ -1,16 +1,15 @@
 import { ReactNode } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View, TextInputProps } from 'react-native';
 import { AppText } from '@/components/common/AppText';
 import { theme } from '@/theme';
 
-type FormInputProps = {
+interface FormInputProps extends TextInputProps {
   label: string;
   placeholder: string;
-  secureTextEntry?: boolean;
   rightAccessory?: ReactNode;
-};
+}
 
-export function FormInput({ label, placeholder, secureTextEntry, rightAccessory }: FormInputProps) {
+export function FormInput({ label, placeholder, rightAccessory, ...rest }: FormInputProps) {
   return (
     <View style={styles.container}>
       <AppText variant='bodyLarge' weight='medium'>
@@ -20,8 +19,9 @@ export function FormInput({ label, placeholder, secureTextEntry, rightAccessory 
         <TextInput
           placeholder={placeholder}
           placeholderTextColor={theme.colors.placeholder}
-          secureTextEntry={secureTextEntry}
           style={styles.input}
+          autoCapitalize="none"
+          {...rest}
         />
         {rightAccessory}
       </View>

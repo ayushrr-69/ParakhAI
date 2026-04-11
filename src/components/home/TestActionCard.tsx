@@ -10,7 +10,7 @@ type TestActionCardProps = {
 export function TestActionCard({ title, backgroundColor }: TestActionCardProps) {
   return (
     <View style={[styles.card, { backgroundColor }]}>
-      <AppText variant='title' weight='semibold' color={theme.colors.textDark}>
+      <AppText variant='bodyLarge' weight='semibold' color={theme.colors.textDark}>
         {title}
       </AppText>
     </View>
@@ -19,10 +19,11 @@ export function TestActionCard({ title, backgroundColor }: TestActionCardProps) 
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: 110,
-    flex: 1,
+    minHeight: 100,
+    width: '100%',
     borderRadius: theme.radii.card,
     padding: theme.spacing.md,
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
   },
 });

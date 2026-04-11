@@ -2,32 +2,32 @@ import { colors } from '@/theme/colors';
 import { AnalysisRange, CalendarDay, ChartSeriesPoint, OnboardingSlide, RoleOption, TestAction } from '@/types/app';
 
 export const splashContent = {
-  brand: 'NutriAI',
-  tagline: 'Sports Performance Tracking',
+  brand: 'ParakhAI',
+  tagline: 'AI-powered training and performance analysis',
 };
 
 export const onboardingSlides: OnboardingSlide[] = [
   {
     key: 'skills',
     backgroundColor: colors.lavender,
-    title: 'Test your skills and performance',
-    subtitle: 'Measure movement quality and consistency with athlete-first guided tests.',
+    title: 'Analyze every rep with clarity',
+    subtitle: 'Use guided exercise analysis to measure movement quality and consistency.',
     accent: 'purple',
     ctaLabel: 'Next',
   },
   {
     key: 'compete',
     backgroundColor: colors.success,
-    title: 'Compete against other players',
-    subtitle: 'See how your numbers compare to national athlete benchmarks over time.',
+    title: 'Compare sessions over time',
+    subtitle: 'Track how your reps, form, and performance change across workouts.',
     accent: 'green',
     ctaLabel: 'Next',
   },
   {
     key: 'journey',
     backgroundColor: colors.accentOrange,
-    title: 'Record your journey',
-    subtitle: 'Keep a clear timeline of training effort, trends, and next targets.',
+    title: 'Record your training journey',
+    subtitle: 'Keep a clean timeline of results, trends, and next targets in one place.',
     accent: 'orange',
     ctaLabel: 'Get Started',
   },
@@ -40,38 +40,38 @@ export const roleOptions: RoleOption[] = [
     imageAccent: colors.lavender,
   },
   {
-    key: 'official',
-    title: 'Official',
+    key: 'coach',
+    title: 'Coach',
     imageAccent: colors.accentOrange,
   },
 ];
 
-export const calendarDays: CalendarDay[] = [
-  { key: 'mon', day: 'Mon', date: '12' },
-  { key: 'tue', day: 'Tue', date: '13' },
-  { key: 'wed', day: 'Wed', date: '14' },
-  { key: 'thu', day: 'Thu', date: '15', isSelected: true },
-  { key: 'fri', day: 'Fri', date: '16' },
-  { key: 'sat', day: 'Sat', date: '17' },
-  { key: 'sun', day: 'Sun', date: '18' },
-];
-
 export const homeTestActions: TestAction[] = [
   {
-    key: 'repeat',
-    title: 'Repeat Last Test',
-    backgroundColor: colors.success,
-  },
-  {
-    key: 'history',
-    title: 'Test History',
+    key: 'pushups',
+    title: 'Push-ups',
     backgroundColor: colors.lavender,
   },
   {
-    key: 'personalized',
-    title: 'Personalized Test',
+    key: 'squats',
+    title: 'Squats',
+    backgroundColor: colors.success,
+  },
+  {
+    key: 'bicep_curls',
+    title: 'Bicep Curls',
     backgroundColor: colors.accentOrange,
   },
+];
+
+export const calendarDays: CalendarDay[] = [
+  { key: 'sun', day: 'Sun', date: '5' },
+  { key: 'mon', day: 'Mon', date: '6' },
+  { key: 'tue', day: 'Tue', date: '7' },
+  { key: 'wed', day: 'Wed', date: '8' },
+  { key: 'thu', day: 'Thu', date: '9' },
+  { key: 'fri', day: 'Fri', date: '10' },
+  { key: 'sat', day: 'Sat', date: '11', isSelected: true },
 ];
 
 export const analysisTabs: AnalysisRange[] = ['weekly', 'monthly', 'yearly'];
@@ -109,3 +109,57 @@ export const subroutineBreakdown = [
   { key: 'sprint', title: 'Sprint', percentage: '28%', backgroundColor: colors.success },
   { key: 'jump', title: 'Jump', percentage: '19%', backgroundColor: colors.accentOrange },
 ];
+
+export const mockAnalysisFeedback = {
+  pushups: {
+    review: [
+      "Solid control on the descent phase. Your tempo was consistent throughout the set.",
+      "Good chest-to-floor depth on most reps, though fatigue set in toward the end.",
+      "Strong stable core maintained, preventing hip sag during the high-volume portion."
+    ],
+    correction: [
+      "Focus on fully extending your elbows at the top for maximum pectoralis engagement.",
+      "Check your hand placement; slightly wider than shoulders will improve base stability.",
+      "Prevent your head from drooping; keep a neutral spine by looking 6 inches ahead."
+    ],
+    validation: [
+      "Neural depth tracking verified at 94% accuracy.",
+      "Elbow lockout consistency checked: PASS.",
+      "Mid-section stability (Core) detected: EXCELLENT."
+    ]
+  },
+  squats: {
+    review: [
+      "Excellent depth achieved, consistently breaking the parallel plane.",
+      "Dynamic balance was centered, with weight properly distributed on the heels.",
+      "Explosive power on the ascent was notable in the first 8 repetitions."
+    ],
+    correction: [
+      "Ensure your knee follows the line of your toes to prevent inward collapse.",
+      "Maintain an upright chest to keep the center of mass over your mid-foot.",
+      "Slow down the eccentric (downward) phase to increase time-under-tension."
+    ],
+    validation: [
+      "Parallel plane achievement verified: 100%.",
+      "Hip-to-Knee alignment tracking: PASS.",
+      "Heel-contact pressure sensor (AI): CONSTANT."
+    ]
+  },
+  bicep_curls: {
+    review: [
+      "Strict form maintained with minimal shoulder involvement or body sway.",
+      "Full range of motion achieved from complete extension to peak contraction.",
+      "Steady cadence preserved, maximizing the metabolic stress on the biceps."
+    ],
+    correction: [
+      "Keep your elbows pinned to your ribs to isolate the bicep heads better.",
+      "Avoid using momentum at the bottom; start each rep from a dead stop.",
+      "Ensure a slow, controlled negative phase to prevent joint strain."
+    ],
+    validation: [
+      "Elbow pivot-point isolation: PASS.",
+      "Supination degree at peak: 88% OPTIMAL.",
+      "Swing momentum dampening: VERIFIED."
+    ]
+  }
+};

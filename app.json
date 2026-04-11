@@ -12,7 +12,24 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-asset"
-    ]
+      "expo-asset",
+      "expo-image-picker",
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "ParakhAI needs access to your camera to analyze your sports performance.",
+          "enableMicrophonePermission": false
+        }
+      ],
+      "expo-video",
+      "@react-native-google-signin/google-signin"
+    ],
+    "android": {
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
+      ],
+      "package": "com.ayushrr.sportsperformancetracker"
+    }
   }
 }

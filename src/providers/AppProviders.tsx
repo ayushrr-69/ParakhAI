@@ -2,6 +2,7 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { PropsWithChildren } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { theme } from '@/theme';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 const navigationTheme = {
   ...DarkTheme,
@@ -19,7 +20,9 @@ const navigationTheme = {
 export function AppProviders({ children }: PropsWithChildren) {
   return (
     <SafeAreaProvider>
-      <NavigationContainer theme={navigationTheme}>{children}</NavigationContainer>
+      <AuthProvider>
+        <NavigationContainer theme={navigationTheme}>{children}</NavigationContainer>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

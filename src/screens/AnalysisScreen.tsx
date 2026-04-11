@@ -1,39 +1,79 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import { useState, useCallback, useMemo } from 'react';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { AppText } from '@/components/common/AppText';
 import { PerformanceChart } from '@/components/charts/PerformanceChart';
 import { AppShell } from '@/components/layout/AppShell';
-import { BottomNav } from '@/components/navigation/BottomNav';
-import { DeviceStatusBar } from '@/components/system/DeviceStatusBar';
 import { analysisCopy, analysisTabs, subroutineBreakdown } from '@/constants/content';
 import { theme } from '@/theme';
 import { AnalysisRange } from '@/types/app';
 import { RootStackParamList } from '@/types/navigation';
+import { historyService, Session } from '@/services/history';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Analysis'>;
 
 export function AnalysisScreen(_: Props) {
-  const [activeTab, setActiveTab] = useState<AnalysisRange>('weekly');
+  const [activeExercise, setActiveExercise] = useState<'pushups' | 'squats' | 'bicep_curls'>('pushups');
+  const [sessions, setSessions] = useState<Session[]>([]);
+
+  const exerciseTabs: Array<'pushups' | 'squats' | 'bicep_curls'> = ['pushups', 'squats', 'bicep_curls'];
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadHistory = async () => {
+        const history = await historyService.getHistory();
+        setSessions(history);
+      };
+      loadHistory();
+    }, [])
+  );
+
+  const { chartUserSeries, chartLabels } = useMemo(() => {
+    // Filter and sort sessions for the selected exercise by date (oldest to newest)
+    const filtered = sessions
+      .filter(s => s.exerciseType === activeExercise)
+      .sort((a, b) => {
+        const timeA = new Date(a.date).getTime();
+        const timeB = new Date(b.date).getTime();
+        if (timeA !== timeB) return timeA - timeB; // Oldest first
+        return a.id.localeCompare(b.id);
+      });
+
+    if (filtered.length === 0) {
+      return { chartUserSeries: undefined, chartLabels: undefined };
+    }
+
+    const scores = filtered.map(s => (s as any).qualityScore || 0);
+    const labels = filtered.map(s => {
+      const d = new Date(s.date);
+      return `${d.getDate()}/${d.getMonth() + 1}`; // Simple DD/MM label
+    });
+
+    return { chartUserSeries: scores, chartLabels: labels };
+  }, [sessions, activeExercise]);
 
   return (
-    <AppShell scrollable header={<DeviceStatusBar />} footer={<BottomNav />} footerMode='sticky'>
-      <View style={styles.container}>
-        <AppText variant='heading' weight='semibold'>Performance Analysis</AppText>
+    <AppShell footerMode='sticky'>
+      <View style={styles.screen}>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <AppText variant='heading' weight='semibold'>Performance Quality</AppText>
+          <AppText variant='bodySmall' color={theme.colors.placeholder}>Comparing your movement quality against elite standards</AppText>
+        </View>
 
         <View style={[styles.heroCard, { backgroundColor: theme.colors.success }]}>
-          <AppText variant='title' weight='semibold'>Your Performance Analysis</AppText>
-          <AppText variant='bodyLarge'>Track trends. Spot patterns. Crush your goals. Be better.</AppText>
+          <AppText variant='title' weight='semibold'>Quality vs. Elite Standards</AppText>
+          <AppText variant='bodyLarge'>Scores are calculated based on form stability and repetition accuracy.</AppText>
         </View>
 
         <View style={styles.tabBar}>
-          {analysisTabs.map((tab) => {
-            const active = tab === activeTab;
+          {exerciseTabs.map((tab) => {
+            const active = tab === activeExercise;
             return (
-              <Pressable key={tab} onPress={() => setActiveTab(tab)} style={[styles.tabPill, active && styles.activeTab]}>
+              <Pressable key={tab} onPress={() => setActiveExercise(tab)} style={[styles.tabPill, active && styles.activeTab]}>
                 <AppText variant='body' weight='semibold' color={active ? theme.colors.textDark : theme.colors.nearBlack}>
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab.charAt(0).toUpperCase() + tab.slice(1).replace('_', ' ')}
                 </AppText>
               </Pressable>
             );
@@ -41,13 +81,20 @@ export function AnalysisScreen(_: Props) {
         </View>
 
         <View style={[styles.chartCard, { backgroundColor: theme.colors.lavender }]}>
-          <AppText variant='title' weight='semibold' color={theme.colors.nearBlack}>Performance Trends</AppText>
-          <PerformanceChart type={activeTab} />
+          <View style={styles.chartHeader}>
+             <AppText variant='title' weight='semibold' color={theme.colors.nearBlack}>Session Quality (0-100)</AppText>
+             <AppText variant='bodySmall' color={theme.colors.nearBlack} style={{ opacity: 0.6 }}>Standardized Grade</AppText>
+          </View>
+          <PerformanceChart 
+            type={activeExercise as any} 
+            userSeries={chartUserSeries} 
+            labels={chartLabels} 
+          />
         </View>
 
         <View style={[styles.analysisCard, { backgroundColor: theme.colors.success }]}>
           <AppText variant='title' weight='semibold'>AI Analysis</AppText>
-          <AppText variant='bodyLarge'>{analysisCopy[activeTab]}</AppText>
+          <AppText variant='bodyLarge'>{activeExercise === 'pushups' ? analysisCopy.weekly : analysisCopy.monthly}</AppText>
         </View>
 
         <View style={[styles.subroutineCard, { backgroundColor: theme.colors.yellow }]}>
@@ -62,23 +109,26 @@ export function AnalysisScreen(_: Props) {
             ))}
           </View>
         </View>
-
-        <Pressable style={styles.scrollTopButton} onPress={() => setActiveTab('weekly')}>
-          <Svg width={18} height={18} viewBox='0 0 18 18' fill='none'>
-            <Path d='M9 3 3.5 8.5M9 3l5.5 5.5M9 3v12' stroke={theme.colors.nearBlack} strokeWidth={2} strokeLinecap='round' strokeLinejoin='round' />
-          </Svg>
-        </Pressable>
+        </ScrollView>
       </View>
     </AppShell>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  container: {
     paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
+    paddingBottom: theme.layout.navHeight + theme.spacing.xxxl + theme.spacing.lg,
     gap: theme.spacing.lg,
+  },
+  header: {
+    gap: 2,
   },
   heroCard: {
     borderRadius: theme.radii.largeCard,
@@ -107,6 +157,12 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     gap: theme.spacing.md,
   },
+  chartHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.md,
+  },
   analysisCard: {
     borderRadius: theme.radii.largeCard,
     padding: theme.spacing.lg,
@@ -129,13 +185,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
     gap: theme.spacing.xs,
   },
-  scrollTopButton: {
-    alignSelf: 'flex-end',
-    width: 48,
-    height: 48,
+  historySection: {
+    gap: theme.spacing.md,
+    marginTop: theme.spacing.sm,
+  },
+  historyList: {
+    gap: theme.spacing.sm,
+  },
+  historyItem: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderRadius: theme.radii.card,
-    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.md,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  historyInfo: {
+    gap: 2,
+  },
+  scoreBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: theme.radii.pill,
   },
 });
+

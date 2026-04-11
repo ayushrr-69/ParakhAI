@@ -1,45 +1,82 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppText } from '@/components/common/AppText';
 import { AppShell } from '@/components/layout/AppShell';
 import { BottomNav } from '@/components/navigation/BottomNav';
-import { DeviceStatusBar } from '@/components/system/DeviceStatusBar';
 import { theme } from '@/theme';
 import { RootStackParamList } from '@/types/navigation';
 
 type PlaceholderRoute = 'Tests' | 'Notifications' | 'Profile' | 'Settings' | 'More';
 type Props = NativeStackScreenProps<RootStackParamList, PlaceholderRoute>;
 
+import Svg, { Path, Rect } from 'react-native-svg';
+
 export function PlaceholderScreen({ navigation, route }: Props) {
   const content = route.params.content;
+  const canGoBack = navigation.canGoBack();
 
   return (
-    <AppShell scrollable header={<DeviceStatusBar />} footer={<BottomNav />}>
-      <View style={styles.container}>
-        <View style={styles.brandMark}>
-          <View style={[styles.brandChip, { backgroundColor: theme.colors.primary }]} />
-          <View style={[styles.brandChip, { backgroundColor: theme.colors.success }]} />
-          <View style={[styles.brandChip, { backgroundColor: theme.colors.lavender }]} />
+    <AppShell footerMode='sticky'>
+      <View style={styles.screen}>
+        <View style={styles.header}>
+          {canGoBack && (
+            <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+              <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+                <Path d="M15 18l-6-6 6-6" stroke={theme.colors.nearBlack} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
+            </Pressable>
+          )}
         </View>
-        <AppText variant='hero' weight='semibold'>{content.title}</AppText>
-        <AppText variant='bodyLarge' color={theme.colors.placeholder} style={styles.message}>{content.message}</AppText>
-        {route.name === 'Profile' ? (
-          <Pressable onPress={() => navigation.navigate('More', { content: { title: 'More', message: 'More athlete tools will appear here.' } })} style={styles.inlineButton}>
-            <AppText variant='bodyLarge' weight='semibold' color={theme.colors.primary}>Open More</AppText>
-          </Pressable>
-        ) : null}
+
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+          <View style={styles.brandMark}>
+            <View style={[styles.brandChip, { backgroundColor: theme.colors.primary }]} />
+            <View style={[styles.brandChip, { backgroundColor: theme.colors.success }]} />
+            <View style={[styles.brandChip, { backgroundColor: theme.colors.lavender }]} />
+          </View>
+          <AppText variant='hero' weight='semibold'>{content.title}</AppText>
+          <AppText variant='bodyLarge' color={theme.colors.placeholder} style={styles.message}>{content.message}</AppText>
+          {route.name === 'Profile' ? (
+            <Pressable onPress={() => navigation.navigate('More', { content: { title: 'More', message: 'More athlete tools will appear here.' } })} style={styles.inlineButton}>
+              <AppText variant='bodyLarge' weight='semibold' color={theme.colors.primary}>Open More</AppText>
+            </Pressable>
+          ) : null}
+        </ScrollView>
       </View>
     </AppShell>
   );
 }
 
+
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  container: {
     minHeight: 500,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: theme.spacing.xl,
+    paddingBottom: theme.layout.navHeight + theme.spacing.xxxl + theme.spacing.lg,
+  },
+  header: {
+    height: 60,
+    paddingHorizontal: theme.spacing.lg,
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: theme.radii.full,
+    backgroundColor: theme.colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   brandMark: {
     flexDirection: 'row',
@@ -59,3 +96,4 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.lg,
   },
 });
+

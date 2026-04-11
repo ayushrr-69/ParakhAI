@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import { AppState, Platform, StyleSheet, View } from 'react-native';
 import * as Battery from 'expo-battery';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { AppText } from '@/components/common/AppText';
@@ -15,6 +15,7 @@ const getFormattedTime = () =>
 export function DeviceStatusBar() {
   const [timeLabel, setTimeLabel] = useState(getFormattedTime);
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
+  const isWeb = Platform.OS === 'web';
 
   useEffect(() => {
     const refreshTime = () => setTimeLabel(getFormattedTime());
@@ -34,6 +35,10 @@ export function DeviceStatusBar() {
   }, []);
 
   useEffect(() => {
+    if (isWeb) {
+      return;
+    }
+
     let mounted = true;
 
     const syncBattery = async () => {
@@ -61,9 +66,13 @@ export function DeviceStatusBar() {
       mounted = false;
       subscription.remove();
     };
-  }, []);
+  }, [isWeb]);
 
   const batteryPercentage = useMemo(() => {
+    if (isWeb) {
+      return '100%';
+    }
+
     if (batteryLevel == null) {
       return '--%';
     }
@@ -72,6 +81,10 @@ export function DeviceStatusBar() {
   }, [batteryLevel]);
 
   const batteryFillWidth = useMemo(() => {
+    if (isWeb) {
+      return 14;
+    }
+
     if (batteryLevel == null) {
       return 8;
     }
