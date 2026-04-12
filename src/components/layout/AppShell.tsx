@@ -1,4 +1,5 @@
 import { PropsWithChildren, ReactNode } from 'react';
+import { StatusBar } from 'expo-status-bar';
 import { ScrollView, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '@/theme';
@@ -7,10 +8,11 @@ type AppShellProps = PropsWithChildren<{
   scrollable?: boolean;
   header?: ReactNode;
   footer?: ReactNode;
-  footerMode?: 'flow' | 'sticky';
+  footerMode?: 'flow' | 'sticky' | 'hidden';
   contentStyle?: StyleProp<ViewStyle>;
   edges?: ReadonlyArray<'top' | 'right' | 'bottom' | 'left'>;
   noPaddingTop?: boolean;
+  refreshControl?: ReactNode;
 }>;
 
 export function AppShell({
@@ -22,6 +24,7 @@ export function AppShell({
   contentStyle,
   edges = ['top', 'bottom'],
   noPaddingTop = false,
+  refreshControl,
 }: AppShellProps) {
   const stickyFooter = Boolean(footer) && footerMode === 'sticky';
 
@@ -30,6 +33,7 @@ export function AppShell({
       style={styles.scrollView}
       contentContainerStyle={[styles.scrollBody, stickyFooter ? styles.scrollBodyWithStickyFooter : undefined]}
       showsVerticalScrollIndicator={false}
+      refreshControl={refreshControl as any}
     >
       {children}
     </ScrollView>
@@ -39,6 +43,7 @@ export function AppShell({
 
   return (
     <SafeAreaView style={styles.safeArea} edges={edges}>
+      <StatusBar style="light" translucent={false} backgroundColor={theme.colors.background} />
       <View style={styles.centered}>
         <View style={[styles.phoneShell, !noPaddingTop && styles.topPadding, contentStyle]}>
           {header}

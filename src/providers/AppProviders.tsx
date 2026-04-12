@@ -3,6 +3,7 @@ import { PropsWithChildren } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { theme } from '@/theme';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { DataProvider } from '@/contexts/DataContext';
 
 const navigationTheme = {
   ...DarkTheme,
@@ -21,7 +22,9 @@ export function AppProviders({ children }: PropsWithChildren) {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <NavigationContainer theme={navigationTheme}>{children}</NavigationContainer>
+        <DataProvider>
+          <NavigationContainer theme={navigationTheme}>{children}</NavigationContainer>
+        </DataProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

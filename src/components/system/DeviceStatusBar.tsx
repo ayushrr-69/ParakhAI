@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { AppState, Platform, StyleSheet, View } from 'react-native';
-import * as Battery from 'expo-battery';
+import { useEffect, useState } from 'react';
+import { AppState, StyleSheet, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { AppText } from '@/components/common/AppText';
 import { theme } from '@/theme';
@@ -14,8 +13,6 @@ const getFormattedTime = () =>
 
 export function DeviceStatusBar() {
   const [timeLabel, setTimeLabel] = useState(getFormattedTime);
-  const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
-  const isWeb = Platform.OS === 'web';
 
   useEffect(() => {
     const refreshTime = () => setTimeLabel(getFormattedTime());
@@ -33,64 +30,6 @@ export function DeviceStatusBar() {
       appStateSubscription.remove();
     };
   }, []);
-
-  useEffect(() => {
-    if (isWeb) {
-      return;
-    }
-
-    let mounted = true;
-
-    const syncBattery = async () => {
-      try {
-        const level = await Battery.getBatteryLevelAsync();
-        if (mounted && Number.isFinite(level)) {
-          setBatteryLevel(level);
-        }
-      } catch {
-        if (mounted) {
-          setBatteryLevel(null);
-        }
-      }
-    };
-
-    syncBattery();
-
-    const subscription = Battery.addBatteryLevelListener(({ batteryLevel: level }) => {
-      if (mounted) {
-        setBatteryLevel(level ?? null);
-      }
-    });
-
-    return () => {
-      mounted = false;
-      subscription.remove();
-    };
-  }, [isWeb]);
-
-  const batteryPercentage = useMemo(() => {
-    if (isWeb) {
-      return '100%';
-    }
-
-    if (batteryLevel == null) {
-      return '--%';
-    }
-
-    return `${Math.round(batteryLevel * 100)}%`;
-  }, [batteryLevel]);
-
-  const batteryFillWidth = useMemo(() => {
-    if (isWeb) {
-      return 14;
-    }
-
-    if (batteryLevel == null) {
-      return 8;
-    }
-
-    return Math.max(3, Math.round(batteryLevel * 14));
-  }, [batteryLevel]);
 
   return (
     <View style={styles.container}>
@@ -114,11 +53,11 @@ export function DeviceStatusBar() {
         </Svg>
         <View style={styles.batteryGroup}>
           <AppText variant='bodySmall' weight='medium'>
-            {batteryPercentage}
+            100%
           </AppText>
           <Svg width={26} height={12} viewBox='0 0 26 12' fill='none'>
             <Rect x={1} y={1} width={20} height={10} rx={3} stroke={theme.colors.surface} strokeWidth={1.3} />
-            <Rect x={3} y={3} width={batteryFillWidth} height={6} rx={2} fill={theme.colors.surface} />
+            <Rect x={3} y={3} width={14} height={6} rx={2} fill={theme.colors.surface} />
             <Rect x={22} y={4} width={3} height={4} rx={1} fill={theme.colors.surface} />
           </Svg>
         </View>

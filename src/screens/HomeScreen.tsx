@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useMemo, useState, useCallback } from 'react';
-import { StyleSheet, View, ScrollView, Pressable } from 'react-native';
+import { useMemo, useState, useCallback, useEffect } from 'react';
+import { StyleSheet, View, ScrollView, Pressable, RefreshControl, Image, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { AppText } from '@/components/common/AppText';
@@ -15,54 +15,57 @@ import { RootStackParamList } from '@/types/navigation';
 import { routes } from '@/constants/routes';
 import { historyService, Session } from '@/services/history';
 import { useAuth } from '@/contexts/AuthContext';
-import { Image } from 'react-native';
+import { useData } from '@/contexts/DataContext';
+import { supabase } from '@/lib/supabase';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export function HomeScreen({ navigation }: Props) {
   const { user, profile } = useAuth();
-  const [history, setHistory] = useState<Session[]>([]);
-  const [stats, setStats] = useState({ score: 0, trend: 0, sparkline: [0, 0] });
+  const { 
+    history, 
+    stats, 
+    teamAvg, 
+    refreshing, 
+    refreshAll, 
+    ensureDataLoaded 
+  } = useData();
+
+  const onRefresh = useCallback(async () => {
+    await refreshAll();
+  }, [refreshAll]);
 
   useFocusEffect(
     useCallback(() => {
-      const loadData = async () => {
-        const data = await historyService.getHistory();
-        setHistory(data);
-        
-        if (data.length === 0) return;
-
-        // Simple weekly logic: 
-        // 1. Sparkline: Full available history (reversed so latest is right)
-        const sparkline = data.slice().reverse().map(s => s.qualityScore || s.consistency);
-        
-        // 2. Weekly Avg: Last 7 days vs previous 7 days
-        const now = new Date();
-        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-
-        const currentWeekSessions = data.filter(s => new Date(s.date) >= oneWeekAgo);
-        const prevWeekSessions = data.filter(s => new Date(s.date) >= twoWeeksAgo && new Date(s.date) < oneWeekAgo);
-
-        const currentAvg = currentWeekSessions.length > 0 
-          ? Math.round(currentWeekSessions.reduce((acc, s) => acc + (s.qualityScore || s.consistency), 0) / currentWeekSessions.length)
-          : (data[0]?.qualityScore || 0); // Fallback to last score if no sessions this week
-
-        const prevAvg = prevWeekSessions.length > 0
-          ? prevWeekSessions.reduce((acc, s) => acc + (s.qualityScore || s.consistency), 0) / prevWeekSessions.length
-          : currentAvg;
-
-        const trend = prevAvg === 0 ? 0 : Math.round(((currentAvg - prevAvg) / prevAvg) * 100);
-
-        setStats({
-          score: currentAvg,
-          trend: trend,
-          sparkline: sparkline.length > 1 ? sparkline : [currentAvg, currentAvg]
-        });
-      };
-      loadData();
-    }, [])
+      ensureDataLoaded();
+    }, [ensureDataLoaded])
   );
+
+  // Real-time listener for coach feedback
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    const channel = supabase.channel(`athlete-feedback-${profile.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'coach_feedback',
+          filter: `athlete_id=eq.${profile.id}`
+        },
+        (payload) => {
+          console.log('[Home] New feedback received!', payload);
+          Alert.alert("New Feedback", "Your coach has reviewed your session!");
+          refreshAll();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [profile?.id, refreshAll]);
 
   const initialDay = calendarDays.find((item) => item.isSelected)?.key ?? calendarDays[0]?.key ?? 'thu';
   const [selectedDayKey, setSelectedDayKey] = useState(initialDay);
@@ -76,7 +79,18 @@ export function HomeScreen({ navigation }: Props) {
   );
 
   return (
-    <AppShell scrollable footerMode='sticky'>
+    <AppShell 
+      scrollable 
+      footerMode='sticky'
+      refreshControl={
+        <RefreshControl 
+          refreshing={refreshing} 
+          onRefresh={onRefresh} 
+          tintColor={theme.colors.primary} 
+          colors={[theme.colors.primary]}
+        />
+      }
+    >
       <View style={styles.container}>
         <View style={styles.headerRow}>
           <View>
@@ -99,10 +113,8 @@ export function HomeScreen({ navigation }: Props) {
               )}
             </Pressable>
             <Pressable style={styles.bellButton} onPress={() => navigation.navigate(routes.notifications as any)}>
-              <Svg width={20} height={20} viewBox='0 0 22 22' fill='none'>
-                <Path d='M11 4.5a4 4 0 0 0-4 4v2.2c0 .7-.2 1.4-.6 2l-1.2 1.8h11.6l-1.2-1.8a3.6 3.6 0 0 1-.6-2V8.5a4 4 0 0 0-4-4Z' stroke={theme.colors.surface} strokeWidth={1.7} />
-                <Path d='M9 17a2.4 2.4 0 0 0 4 0' stroke={theme.colors.surface} strokeWidth={1.7} strokeLinecap='round' />
-                <Circle cx={16.5} cy={5.5} r={2.5} fill={theme.colors.primary} />
+              <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+                <Path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" stroke={theme.colors.textPrimary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
             </Pressable>
           </View>
@@ -114,6 +126,7 @@ export function HomeScreen({ navigation }: Props) {
           score={stats.score} 
           trend={stats.trend} 
           history={stats.sparkline} 
+          teamAverage={teamAvg}
         />
 
         <View style={styles.insightSection}>
@@ -214,6 +227,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginTop: theme.spacing.sm,
   },
   headerActions: {
     flexDirection: 'row',

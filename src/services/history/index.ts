@@ -1,5 +1,7 @@
 import { documentDirectory, readAsStringAsync, writeAsStringAsync, deleteAsync, getInfoAsync } from 'expo-file-system';
+import { Video } from 'react-native-compressor';
 import { supabase } from '@/lib/supabase';
+import * as FileSystem from 'expo-file-system';
 
 export interface Session {
   id: string;
@@ -11,6 +13,7 @@ export interface Session {
   qualityScore: number;
   avgPower: number;
   avgSpeed: number;
+  video_url?: string;
   insights: {
     review: string;
     correction: string;
@@ -71,6 +74,7 @@ export const historyService = {
           qualityScore: s.quality_score,
           avgPower: s.avg_power,
           avgSpeed: s.avg_speed,
+          video_url: s.video_url,
           insights: s.insights
         }));
 
@@ -93,14 +97,63 @@ export const historyService = {
     }
   },
 
-  async addSession(session: Omit<Session, 'id' | 'date'>): Promise<void> {
+  async addSession(session: Omit<Session, 'id' | 'date'>, videoUri?: string): Promise<string> {
+    const base64ToUint8Array = (base64: string) => {
+      const binaryString = atob(base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes;
+    };
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        return;
+        throw new Error('User not found');
       }
 
-      // 1. Save to Cloud first to get the record ID
+      let uploadedVideoUrl: string | undefined = undefined;
+
+      // 1. Handle Video Compression and Upload if URI provided
+      if (videoUri) {
+        console.log('[historyService] Compressing video:', videoUri);
+        try {
+          const compressedUri = await Video.compress(videoUri, {
+            compressionMethod: 'auto',
+          }, (progress) => {
+            console.log('[historyService] Compression Progress:', progress);
+          });
+
+          console.log('[historyService] Uploading compressed video...');
+          const filename = `${user.id}/${Date.now()}_workout.mp4`;
+          const fileBase64 = await FileSystem.readAsStringAsync(compressedUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          
+          const { data: uploadRes, error: uploadError } = await supabase.storage
+            .from('exercise-videos')
+            .upload(filename, base64ToUint8Array(fileBase64), {
+              contentType: 'video/mp4',
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (uploadError) throw uploadError;
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('exercise-videos')
+            .getPublicUrl(filename);
+            
+          uploadedVideoUrl = publicUrl;
+          console.log('[historyService] Video Upload Success:', publicUrl);
+        } catch (err) {
+          console.error('[historyService] Video Processing Failed:', err);
+          // We continue but without video URL
+        }
+      }
+
+      // 2. Save to Cloud
       const { data: cloudRes, error: syncError } = await supabase
         .from('exercise_sessions')
         .insert([{
@@ -113,6 +166,7 @@ export const historyService = {
           consistency_score: Math.round(session.consistency),
           avg_power: Number(session.avgPower.toFixed(2)),
           avg_speed: Number(session.avgSpeed.toFixed(2)),
+          video_url: uploadedVideoUrl,
           insights: session.insights,
         }])
         .select()
@@ -144,6 +198,7 @@ export const historyService = {
       const updatedHistory = [newSession, ...history.filter(h => h.id !== cloudRes.id)].slice(0, 50);
       await writeAsStringAsync(HISTORY_FILE, JSON.stringify(updatedHistory));
 
+      return cloudRes.id;
     } catch (e) {
       console.error('historyService.addSession failed:', e);
       throw e;

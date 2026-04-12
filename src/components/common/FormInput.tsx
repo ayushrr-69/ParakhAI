@@ -7,15 +7,20 @@ interface FormInputProps extends TextInputProps {
   label: string;
   placeholder: string;
   rightAccessory?: ReactNode;
+  error?: boolean;
+  errorMessage?: string;
 }
 
-export function FormInput({ label, placeholder, rightAccessory, ...rest }: FormInputProps) {
+export function FormInput({ label, placeholder, rightAccessory, error, errorMessage, ...rest }: FormInputProps) {
   return (
     <View style={styles.container}>
-      <AppText variant='bodyLarge' weight='medium'>
+      <AppText variant='bodyLarge' weight='medium' color={error ? theme.colors.error : theme.colors.textPrimary}>
         {label}
       </AppText>
-      <View style={styles.inputWrapper}>
+      <View style={[
+        styles.inputWrapper,
+        error && styles.inputWrapperError
+      ]}>
         <TextInput
           placeholder={placeholder}
           placeholderTextColor={theme.colors.placeholder}
@@ -25,6 +30,11 @@ export function FormInput({ label, placeholder, rightAccessory, ...rest }: FormI
         />
         {rightAccessory}
       </View>
+      {error && errorMessage && (
+        <AppText variant='bodySmall' color={theme.colors.error} style={styles.errorText}>
+          {errorMessage}
+        </AppText>
+      )}
     </View>
   );
 }
@@ -43,10 +53,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  inputWrapperError: {
+    borderColor: theme.colors.error,
+  },
   input: {
     flex: 1,
     color: theme.colors.textPrimary,
     fontFamily: theme.fontFamily.regular,
     fontSize: theme.typography.bodyLarge.fontSize,
+  },
+  errorText: {
+    marginTop: 2,
+    marginLeft: 4,
   },
 });

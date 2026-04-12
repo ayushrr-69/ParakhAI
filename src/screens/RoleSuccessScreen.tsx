@@ -15,7 +15,7 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 export function RoleSuccessScreen({ navigation, route }: Props) {
   const { role } = route.params;
-  const { refreshProfile, updateProfileState } = useAuth();
+  const { profile, refreshProfile, updateProfileState } = useAuth();
   
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -85,17 +85,20 @@ export function RoleSuccessScreen({ navigation, route }: Props) {
       await refreshProfile();
 
       // 3. Explicitly force navigation to ensure we don't get stuck
-      // AppNavigator switch is usually automatic, but reset is a foolproof fallback
       setTimeout(() => {
+        // We must check if the user has a username to determine the correct next screen.
+        // AppNavigator swaps stacks based on this condition, so we must reset to an available route.
+        const hasUsername = !!profile?.username;
+        
         if (role === 'athlete') {
           navigation.reset({
             index: 0,
-            routes: [{ name: 'Main' }],
+            routes: [{ name: hasUsername ? 'Main' : routes.profileSetup }],
           });
         } else {
           navigation.reset({
             index: 0,
-            routes: [{ name: routes.coachDashboard as any }],
+            routes: [{ name: hasUsername ? routes.coachDashboard as any : routes.coachSetup }],
           });
         }
       }, 100);

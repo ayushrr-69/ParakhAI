@@ -55,7 +55,7 @@ export function VideoUploadScreen({ route, navigation }: Props) {
       const results = await startAnalysis(videoUri, filename, exerciseType, videoDuration, (p) => {
           setProgress(Math.round(p * 100));
       }, glContext);
-      navigation.navigate(routes.analysisResults, { results, exerciseType });
+      navigation.navigate(routes.analysisResults, { results, exerciseType, videoPath: videoUri });
     } catch (err: any) {
       Alert.alert('Analysis Failed', err.message || 'Something went wrong');
     }

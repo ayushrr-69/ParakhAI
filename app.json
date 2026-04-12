@@ -5,6 +5,16 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
+    "backgroundColor": "#121212",
+    "splash": {
+      "backgroundColor": "#121212",
+      "resizeMode": "contain"
+    },
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#121212",
+      "translucent": true
+    },
     "assetBundlePatterns": [
       "**/*"
     ],

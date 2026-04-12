@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Pressable, ScrollView, ActivityIndicator, Alert, Platform } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppText } from '@/components/common/AppText';
 import { BackButton } from '@/components/common/BackButton';
@@ -12,12 +12,19 @@ import { useMemo, useEffect, useState } from 'react';
 import { historyService, Session } from '@/services/history';
 import { AnalysisResult } from '@/types/analysis';
 import { useAuth } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
+import { coachService } from '@/services/coach';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AnalysisResults'>;
 
 export function AnalysisResultsScreen({ route, navigation }: Props) {
-  const { results, exerciseType, session } = route.params;
-  const { user } = useAuth();
+  const { results, exerciseType, session, videoPath, coachFeedback, coachName } = route.params;
+  const { user, profile } = useAuth();
+  const { refreshAll } = useData();
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [savedSessionId, setSavedSessionId] = useState<string | null>(null);
   
   // Standardize data from either history or live analysis
   const data = useMemo(() => {
@@ -53,7 +60,6 @@ export function AnalysisResultsScreen({ route, navigation }: Props) {
   const { summary, metadata } = data;
   const exerciseLabel = exerciseType.charAt(0).toUpperCase() + exerciseType.slice(1).replace('_', ' ');
 
-
   const insights = useMemo(() => {
     if (session) return session.insights;
     
@@ -87,17 +93,14 @@ export function AnalysisResultsScreen({ route, navigation }: Props) {
     </View>
   );
 
-  const [isSaving, setIsSaving] = useState(false);
-
   const handleDone = async () => {
-    if (isSaving) return;
+    if (isSaving || isSubmitting) return;
 
-    // Only save to local history if we just finished a new assessment
-    // Cloud sync is handled by useEffect
-    if (!session && results) {
+    // Only save to local history if we just finished a new assessment and haven't saved it yet
+    if (!session && results && !savedSessionId) {
       try {
         setIsSaving(true);
-        await historyService.addSession({
+        const sessionId = await historyService.addSession({
           exerciseType,
           totalReps: summary.total_reps,
           goodReps: summary.good_reps,
@@ -106,7 +109,9 @@ export function AnalysisResultsScreen({ route, navigation }: Props) {
           avgPower: summary.avg_power || 0,
           avgSpeed: summary.avg_speed || 0,
           insights,
-        });
+        }, videoPath);
+        setSavedSessionId(sessionId);
+        refreshAll(); // Update global history cache
       } catch (e) {
         console.error('Failed to save session to local history:', e);
         setIsSaving(false);
@@ -116,12 +121,58 @@ export function AnalysisResultsScreen({ route, navigation }: Props) {
     navigation.navigate('Main', { screen: routes.tests } as any);
   };
 
+  const handleUploadAndSubmit = async () => {
+    if (hasSubmitted || isSubmitting) return;
+
+    if (!profile?.coach_id) {
+      Alert.alert("No Coach Assigned", "Please connect with a coach in the Coach tab before submitting.");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      // 1. Save session first (only if not already saved)
+      let sessionId = savedSessionId;
+      if (!sessionId) {
+        sessionId = await historyService.addSession({
+          exerciseType,
+          totalReps: summary.total_reps,
+          goodReps: summary.good_reps,
+          consistency: metadata.consistency_score,
+          qualityScore: (metadata as any).quality_score,
+          avgPower: summary.avg_power || 0,
+          avgSpeed: summary.avg_speed || 0,
+          insights
+        }, videoPath);
+        setSavedSessionId(sessionId);
+      }
+
+      // 2. Submit to coach
+      const success = await coachService.createSubmission(sessionId!, profile.coach_id);
+      if (success) {
+        setHasSubmitted(true);
+        refreshAll(); // Update global sharing status
+      } else {
+        throw new Error('Coach submission failed');
+      }
+    } catch (err: any) {
+      console.error('Submission failed:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <AppShell>
       <View style={styles.container}>
         <View style={styles.header}>
           <BackButton onPress={() => navigation.goBack()} />
-          <AppText variant="heading" weight="bold">{exerciseLabel} Results</AppText>
+          <View>
+            <AppText variant="heading" weight="bold">{exerciseLabel} Results</AppText>
+            {coachFeedback && (
+              <AppText variant="tiny" weight="bold" color={theme.colors.primary} style={{ letterSpacing: 1 }}>REVIEWED BY {coachName?.toUpperCase() || 'COACH'}</AppText>
+            )}
+          </View>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -165,6 +216,14 @@ export function AnalysisResultsScreen({ route, navigation }: Props) {
           </View>
 
           <View style={styles.feedbackSection}>
+             {coachFeedback && (
+               <FeedbackBlock 
+                  label="COACH REVIEW"
+                  title="Feedback"
+                  content={coachFeedback}
+                  color={theme.colors.primary}
+               />
+             )}
              <FeedbackBlock 
                 label="AI REVIEW"
                 title="Performance"
@@ -188,10 +247,33 @@ export function AnalysisResultsScreen({ route, navigation }: Props) {
         </ScrollView>
 
         <View style={styles.footer}>
+          {!session && (
+             <Pressable 
+               style={[
+                 styles.submitButton, 
+                 (isSubmitting || hasSubmitted) && styles.disabledButton,
+                 hasSubmitted && styles.successButton
+               ]} 
+               onPress={handleUploadAndSubmit}
+               disabled={isSubmitting || hasSubmitted}
+             >
+               {isSubmitting ? (
+                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                   <ActivityIndicator color={theme.colors.textDark} />
+                   <AppText variant="bodyLarge" weight="semibold" color={theme.colors.textDark}>Compressing & Sending...</AppText>
+                 </View>
+               ) : hasSubmitted ? (
+                 <AppText variant="bodyLarge" weight="semibold" color={theme.colors.textDark}>Shared with Coach</AppText>
+               ) : (
+                 <AppText variant="bodyLarge" weight="semibold" color={theme.colors.textDark}>Submit to Coach</AppText>
+               )}
+             </Pressable>
+          )}
+
           <Pressable 
-            style={[styles.doneButton, isSaving && styles.disabledButton]} 
+            style={[styles.doneButton, (isSaving || isSubmitting) && styles.disabledButton]} 
             onPress={handleDone}
-            disabled={isSaving}
+            disabled={isSaving || isSubmitting}
           >
             {isSaving ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -199,7 +281,7 @@ export function AnalysisResultsScreen({ route, navigation }: Props) {
                 <AppText variant="bodyLarge" weight="semibold" color={theme.colors.textDark}>Saving results...</AppText>
               </View>
             ) : (
-              <AppText variant="bodyLarge" weight="semibold" color={theme.colors.textDark}>Done</AppText>
+              <AppText variant="bodyLarge" weight="semibold" color={theme.colors.textDark}>{session ? 'Close' : 'Done'}</AppText>
             )}
           </Pressable>
         </View>
@@ -217,7 +299,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.md,
-    marginTop: theme.spacing.md,
+    marginTop: theme.spacing.sm,
     marginBottom: theme.spacing.lg,
   },
   scrollContent: {
@@ -281,6 +363,23 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingVertical: theme.spacing.xl,
+    gap: theme.spacing.md,
+  },
+  submitButton: {
+    height: 62,
+    backgroundColor: theme.colors.lavender,
+    borderRadius: theme.radii.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: theme.colors.lavender,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  successButton: {
+    backgroundColor: theme.colors.success,
+    shadowColor: theme.colors.success,
   },
   doneButton: {
     height: 62,

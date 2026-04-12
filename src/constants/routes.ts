@@ -23,6 +23,17 @@ export const routes = {
   settings: 'Settings',
   more: 'More',
   profileSetup: 'ProfileSetup',
+  athleteCoach: 'AthleteCoach',
+  chat: 'Chat',
+  coachReview: 'CoachReview',
+  athletePerformanceReport: 'AthletePerformanceReport',
+  coachSetup: 'CoachSetup',
+  coachHome: 'CoachHome',
+  coachInbox: 'CoachInbox',
+  coachAthletes: 'CoachAthletes',
+  coachReports: 'CoachReports',
+  coachProfile: 'CoachProfile',
+  coachEditProfile: 'CoachEditProfile',
 } as const;
 
 

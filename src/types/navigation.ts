@@ -14,9 +14,12 @@ export type RootStackParamList = {
   Analysis: undefined;
   VideoUpload: { exerciseType: 'pushups' | 'squats' | 'bicep_curls' };
   AnalysisResults: { 
-    results?: any;
-    exerciseType: 'pushups' | 'squats' | 'bicep_curls';
-    session?: any;
+    results?: any; 
+    exerciseType: string; 
+    session?: any; 
+    videoPath?: string; 
+    coachFeedback?: string;
+    coachName?: string;
   };
   RealTimeAnalysis: { exerciseType: 'pushups' | 'squats' | 'bicep_curls' };
   Tests: undefined;
@@ -26,5 +29,14 @@ export type RootStackParamList = {
   More: { content: PlaceholderContent };
   Training: undefined;
   RecordAndUpload: { exerciseType: 'pushups' | 'squats' | 'bicep_curls' };
-  ProfileSetup: undefined;
+  ProfileSetup: { mode?: 'setup' | 'edit' | 'changeCoach'; step?: number };
+  CoachHome: undefined;
+  CoachInbox: undefined;
+  CoachAthletes: undefined;
+  CoachReports: undefined;
+  CoachReview: { 
+    submissionId: string; 
+    athleteName: string; 
+    sessionData: any; 
+  };
 };

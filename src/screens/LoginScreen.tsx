@@ -18,18 +18,36 @@ export function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { signInWithGoogle } = useAuth();
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      newErrors.email = 'Email is required';
+    } else if (!emailRegex.test(email.trim())) {
+      newErrors.email = 'Please enter a valid email address';
     }
+
+    // Password validation
+    if (!password) {
+      newErrors.password = 'Password is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleLogin = async () => {
+    if (!validate()) return;
 
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
 
@@ -43,15 +61,25 @@ export function LoginScreen({ navigation }: Props) {
   };
 
   const handleGoogleLogin = async () => {
+    if (loading) return;
+    
     setLoading(true);
     try {
       await signInWithGoogle();
     } catch (error: any) {
-      if (error.code !== 'ASYNC_OP_IN_PROGRESS') {
-        Alert.alert('Google Login Error', error.message);
-      }
+      // Don't show alert for cancelled sign-ins
+      if (error.code === '7' || error.message?.includes('cancelled')) return;
+
+      // Ensure activity transition is complete before alerting
+      setTimeout(() => {
+        Alert.alert(
+          'Google Login Error',
+          'Could not authenticate with Google. This can sometimes happen if common Google services are still warming up. Please try again in a moment.'
+        );
+      }, 800);
     } finally {
-      setLoading(false);
+      // Keep loading on for a bit longer to allow for navigation or cleanup
+      setTimeout(() => setLoading(false), 2000);
     }
   };
 
@@ -71,14 +99,30 @@ export function LoginScreen({ navigation }: Props) {
             placeholder='Enter your email' 
             keyboardType="email-address"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              if (errors.email) setErrors(prev => {
+                const { email, ...rest } = prev;
+                return rest;
+              });
+            }}
+            error={!!errors.email}
+            errorMessage={errors.email}
           />
           <FormInput 
             label='Password' 
             placeholder='Enter your password' 
             secureTextEntry 
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (errors.password) setErrors(prev => {
+                const { password, ...rest } = prev;
+                return rest;
+              });
+            }}
+            error={!!errors.password}
+            errorMessage={errors.password}
           />
           <Pressable style={styles.inlineLink} onPress={() => Alert.alert('Reset Password', 'Feature coming soon!')}>
             <AppText variant='body' color={theme.colors.primary} weight='medium'>
@@ -93,7 +137,7 @@ export function LoginScreen({ navigation }: Props) {
         </View>
         <View style={styles.socialStack}>
           <AppButton label='Continue with Google' onPress={handleGoogleLogin} variant='secondary' />
-          <AppButton label='Continue with Apple' onPress={() => undefined} variant='secondary' />
+
         </View>
         <Pressable onPress={() => navigation.navigate(routes.signUp)} style={styles.authLink}>
           <AppText variant='bodyLarge'>

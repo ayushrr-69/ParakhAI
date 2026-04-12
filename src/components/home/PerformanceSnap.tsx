@@ -8,10 +8,11 @@ interface PerformanceSnapProps {
   score: number;
   trend: number;
   history: number[];
+  teamAverage?: number;
   loading?: boolean;
 }
 
-export function PerformanceSnap({ score, trend, history, loading }: PerformanceSnapProps) {
+export function PerformanceSnap({ score, trend, history, teamAverage, loading }: PerformanceSnapProps) {
   const scrollViewRef = useRef<ScrollView>(null);
   const SPARK_WIDTH_PER_POINT = 20;
   const h = 40;
@@ -62,6 +63,12 @@ export function PerformanceSnap({ score, trend, history, loading }: PerformanceS
               </AppText>
             </View>
           </View>
+          {teamAverage !== undefined && (
+            <View style={styles.teamRow}>
+               <AppText variant="tiny" weight="bold" color="rgba(255,255,255,0.4)" style={{ letterSpacing: 1 }}>TEAM AVG: </AppText>
+               <AppText variant="tiny" weight="bold" color={theme.colors.primary}>{teamAverage}%</AppText>
+            </View>
+          )}
         </View>
 
         <View style={styles.rightColumn}>
@@ -178,4 +185,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
     marginTop: 4,
   },
+  teamRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  }
 });

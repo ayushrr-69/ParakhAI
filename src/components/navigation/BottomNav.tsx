@@ -1,13 +1,30 @@
 import { MaterialTopTabBarProps } from '@react-navigation/material-top-tabs';
 import { Pressable, StyleSheet, View, Animated } from 'react-native';
-import { AnalysisIcon, ArcheryIcon, HomeIcon, NotificationsIcon, ProfileIcon, TestsIcon } from '@/components/navigation/NavIcons';
+import { 
+  AnalysisIcon, 
+  ArcheryIcon, 
+  CoachIcon, 
+  HomeIcon, 
+  NotificationsIcon, 
+  ProfileIcon, 
+  TestsIcon,
+  InboxIcon,
+  ReportsIcon 
+} from '@/components/navigation/NavIcons';
 import { theme } from '@/theme';
 
 const navItems = [
+  // Athlete Tabs
   { key: 'Home', icon: HomeIcon, label: 'Home' },
   { key: 'Analysis', icon: AnalysisIcon, label: 'Analysis' },
+  { key: 'AthleteCoach', icon: CoachIcon, label: 'Coach' },
   { key: 'Tests', icon: TestsIcon, label: 'Tests' },
   { key: 'Training', icon: ArcheryIcon, label: 'Training' },
+  // Coach Tabs
+  { key: 'CoachHome', icon: HomeIcon, label: 'Home' },
+  { key: 'CoachInbox', icon: InboxIcon, label: 'Inbox' },
+  { key: 'CoachAthletes', icon: CoachIcon, label: 'Athletes' },
+  { key: 'CoachReports', icon: ReportsIcon, label: 'Reports' },
 ] as const;
 
 export function BottomNav({ state, navigation, descriptors }: MaterialTopTabBarProps) {

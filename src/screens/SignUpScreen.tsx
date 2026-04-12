@@ -18,21 +18,46 @@ export function SignUpScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      newErrors.email = 'Email is required';
+    } else if (!emailRegex.test(email.trim())) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Password validation
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
+    // Name validation
+    if (!fullName.trim()) {
+      newErrors.fullName = 'Full name is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSignUp = async () => {
-    if (!email || !password || !fullName) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
+    if (!validate()) return;
 
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           data: {
-            full_name: fullName,
+            full_name: fullName.trim(),
           },
         },
       });
@@ -67,21 +92,45 @@ export function SignUpScreen({ navigation }: Props) {
             label='Full Name' 
             placeholder='Enter your full name' 
             value={fullName}
-            onChangeText={setFullName}
+            onChangeText={(text) => {
+              setFullName(text);
+              if (errors.fullName) setErrors(prev => {
+                const { fullName, ...rest } = prev;
+                return rest;
+              });
+            }}
+            error={!!errors.fullName}
+            errorMessage={errors.fullName}
           />
           <FormInput 
             label='Email' 
             placeholder='Enter your email' 
             keyboardType="email-address"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              if (errors.email) setErrors(prev => {
+                const { email, ...rest } = prev;
+                return rest;
+              });
+            }}
+            error={!!errors.email}
+            errorMessage={errors.email}
           />
           <FormInput 
             label='Password' 
             placeholder='Create a password' 
             secureTextEntry 
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (errors.password) setErrors(prev => {
+                const { password, ...rest } = prev;
+                return rest;
+              });
+            }}
+            error={!!errors.password}
+            errorMessage={errors.password}
           />
           <AppButton 
             label={loading ? 'Creating account...' : 'Sign Up'} 

@@ -61,3 +61,31 @@ export function ArcheryIcon({ active }: IconProps) {
     </Svg>
   );
 }
+
+export function CoachIcon({ active }: IconProps) {
+  return (
+    <Svg width={22} height={22} viewBox='0 0 24 24' fill='none'>
+      <Path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke={stroke(active)} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx="9" cy="7" r="4" stroke={stroke(active)} strokeWidth={1.8} />
+      <Path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke={stroke(active)} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M16 3.13a4 4 0 0 1 0 7.75" stroke={stroke(active)} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function InboxIcon({ active }: IconProps) {
+  return (
+    <Svg width={22} height={22} viewBox='0 0 24 24' fill='none'>
+      <Path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke={stroke(active)} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M22 6l-10 7L2 6" stroke={stroke(active)} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function ReportsIcon({ active }: IconProps) {
+  return (
+    <Svg width={22} height={22} viewBox='0 0 24 24' fill='none'>
+      <Path d="M18 20V10M12 20V4M6 20v-6" stroke={stroke(active)} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}

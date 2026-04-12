@@ -5,8 +5,10 @@ import { theme } from '@/theme';
 type AppTextProps = PropsWithChildren<{
   variant?: keyof typeof theme.typography;
   color?: string;
-  weight?: 'regular' | 'medium' | 'semibold';
+  weight?: 'regular' | 'medium' | 'semibold' | 'bold';
   style?: StyleProp<TextStyle>;
+  numberOfLines?: number;
+  ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip';
 }>;
 
 export function AppText({
@@ -15,8 +17,16 @@ export function AppText({
   color = theme.colors.textPrimary,
   weight = 'regular',
   style,
+  ...props
 }: AppTextProps) {
-  return <Text style={[styles.base, theme.typography[variant], styles[weight], { color }, style]}>{children}</Text>;
+  return (
+    <Text 
+      style={[styles.base, theme.typography[variant], styles[weight], { color }, style]}
+      {...props}
+    >
+      {children}
+    </Text>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -31,5 +41,8 @@ const styles = StyleSheet.create({
   },
   semibold: {
     fontFamily: theme.fontFamily.semibold,
+  },
+  bold: {
+    fontFamily: theme.fontFamily.semibold, // Mapping bold to semibold to avoid missing font errors
   },
 });
