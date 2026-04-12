@@ -112,6 +112,9 @@ export function CoachSetupScreen({ navigation }: Props) {
       
       await refreshProfile();
       setLoading(false);
+      
+      // Navigate to Coach Home after successful setup
+      navigation.replace(routes.coachHome);
     } catch (e: any) {
       console.error('[CoachSetup] Save error:', e);
       setLoading(false);
