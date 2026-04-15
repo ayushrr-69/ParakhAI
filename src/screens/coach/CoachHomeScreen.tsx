@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, ActivityIndicator, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import Svg, { Path, Line, Circle } from 'react-native-svg';
 import { AppText } from '@/components/common/AppText';
 import { AppShell } from '@/components/layout/AppShell';
@@ -80,8 +80,8 @@ export function CoachHomeScreen() {
       .subscribe();
 
     return () => {
-      submissionChannel.unsubscribe();
-      enrollmentChannel.unsubscribe();
+      supabase.removeChannel(submissionChannel);
+      supabase.removeChannel(enrollmentChannel);
     };
   }, [profile?.id]);
 
@@ -112,7 +112,7 @@ export function CoachHomeScreen() {
   } : null;
 
   return (
-    <AppShell footerMode="hidden">
+    <AppShell hasTabBar={true}>
       <CoachHeader
         title={profile?.full_name || 'Coach'}
         subtitle="Welcome back"
@@ -221,41 +221,55 @@ export function CoachHomeScreen() {
               </View>
             </View>
 
-            {/* Recent Athletes */}
+            {/* Recent Submissions */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <AppText variant="heading" weight="semibold">Recent Activity</AppText>
-                <Pressable onPress={() => navigation.navigate(routes.coachAthletes)}>
+                <Pressable onPress={() => navigation.navigate(routes.coachInbox)}>
                   <AppText variant="bodySmall" weight="bold" color={theme.colors.primary}>SEE ALL</AppText>
                 </Pressable>
               </View>
 
-              {athletes.length === 0 ? (
+              {inbox.length === 0 ? (
                 <View style={styles.emptyState}>
                   <AppText variant="bodySmall" color={theme.colors.placeholder} style={{ textAlign: 'center' }}>
-                    No athletes enrolled yet. Share your coach profile to receive requests.
+                    No recent tests submitted for review.
                   </AppText>
                 </View>
               ) : (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.gallery}>
-                  {athletes.slice(0, 6).map((athlete, index) => {
+                  {inbox.slice(0, 6).map((sub, index) => {
                     const colors = [theme.colors.lavender, theme.colors.success, theme.colors.yellow, theme.colors.accentOrange];
                     const bg = colors[index % colors.length];
                     return (
-                      <Pressable
-                        key={athlete?.id ?? `a-${index}`}
-                        style={[styles.galleryCard, { backgroundColor: bg }]}
-                        onPress={() => navigation.navigate(routes.coachAthletes)}
+                      <TouchableOpacity
+                        key={sub.id}
+                        style={[styles.galleryCard, { backgroundColor: bg, width: 140, zIndex: 10 }]}
+                        activeOpacity={0.6}
+                        onPress={() => {
+                          console.log('[CoachHome] Tapped submission:', sub.id);
+                          // Alert.alert("Debug", "Tapped " + sub.id); // Uncomment for extreme debugging
+                          navigation.navigate('CoachReview', { 
+                            submissionId: sub.id,
+                            athleteName: sub.athlete?.full_name || 'Athlete',
+                            sessionData: sub.session
+                          });
+                        }}
                       >
-                        <View style={styles.galleryAvatar}>
-                          <AppText variant="title" weight="bold" color={theme.colors.textDark}>
-                            {athlete?.full_name?.charAt(0) ?? '?'}
+                        <View style={styles.galleryAvatar} pointerEvents="none">
+                          <AppText variant="body" weight="bold" color={theme.colors.textDark}>
+                            {sub.session?.quality ?? '??'}%
                           </AppText>
                         </View>
-                        <AppText variant="bodySmall" weight="bold" color={theme.colors.textDark} numberOfLines={1} style={styles.galleryName}>
-                          {athlete?.full_name?.split(' ')[0] ?? '—'}
-                        </AppText>
-                      </Pressable>
+                        <View style={{ alignItems: 'center' }} pointerEvents="none">
+                          <AppText variant="tiny" weight="bold" color={theme.colors.textDark} numberOfLines={1}>
+                            {(sub.session?.exercise_name || 'Test').toUpperCase()}
+                          </AppText>
+                          <AppText variant="tiny" color={theme.colors.nearBlack} numberOfLines={1} style={{ opacity: 0.7 }}>
+                            {sub.athlete?.full_name?.split(' ')[0] ?? '—'}
+                          </AppText>
+                        </View>
+                      </TouchableOpacity>
                     );
                   })}
                 </ScrollView>

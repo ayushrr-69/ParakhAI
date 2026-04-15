@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/types/navigation';
 import { CoachHeader } from '@/components/coach/CoachHeader';
+import { validation } from '@/utils/validation';
 
 const CATEGORIES = [
   'Football', 'Cricket', 'Basketball', 'Martial Arts', 
@@ -28,20 +29,21 @@ export function CoachEditProfileScreen() {
   const [bio, setBio] = useState(profile?.bio || '');
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>(profile?.specialties || []);
   const [expertiseLevel, setExpertiseLevel] = useState(profile?.expertise_level || 'Certified');
+  const [location, setLocation] = useState(profile?.location || '');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
-    } else if (fullName.trim().length < 3) {
-      newErrors.fullName = 'Name must be at least 3 characters';
+    if (!validation.fullName(fullName)) {
+      newErrors.fullName = 'Please enter a valid name (2-50 letters)';
     }
 
     if (bio.trim().length > 0 && bio.trim().length < 20) {
       newErrors.bio = 'Bio should be at least 20 characters';
+    } else if (bio.trim().length > 500) {
+      newErrors.bio = 'Bio must be under 500 characters';
     }
 
     if (selectedSpecialties.length === 0) {
@@ -63,6 +65,7 @@ export function CoachEditProfileScreen() {
         specialties: selectedSpecialties,
         expertise_level: expertiseLevel,
         bio: bio.trim(),
+        location: location.trim(),
       });
       
       if (error) throw error;
@@ -130,9 +133,29 @@ export function CoachEditProfileScreen() {
                 onBlur={() => setFocusedField(null)}
                 placeholder="Coach Name"
                 placeholderTextColor="rgba(255,255,255,0.2)"
+                maxLength={50}
               />
             </View>
             {errors.fullName && <AppText variant="tiny" color={theme.colors.error} style={styles.errorText}>{errors.fullName}</AppText>}
+          </View>
+
+          <View style={styles.inputGroup}>
+            <AppText variant="bodySmall" weight="bold" color={theme.colors.placeholder} style={styles.label}>PHYSICAL LOCATION</AppText>
+            <View style={[
+              styles.inputContainer,
+              focusedField === 'location' && styles.inputContainerFocused
+            ]}>
+              <TextInput 
+                style={styles.input}
+                value={location}
+                onChangeText={setLocation}
+                onFocus={() => setFocusedField('location')}
+                onBlur={() => setFocusedField(null)}
+                placeholder="e.g. Mumbai, India"
+                placeholderTextColor="rgba(255,255,255,0.2)"
+                maxLength={100}
+              />
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
@@ -185,6 +208,7 @@ export function CoachEditProfileScreen() {
                 placeholderTextColor="rgba(255,255,255,0.2)"
                 multiline
                 numberOfLines={4}
+                maxLength={500}
               />
             </View>
             {errors.bio && <AppText variant="tiny" color={theme.colors.error} style={styles.errorText}>{errors.bio}</AppText>}

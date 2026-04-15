@@ -78,30 +78,11 @@ export function RoleSuccessScreen({ navigation, route }: Props) {
   const handleContinue = async () => {
     setBtnLoading(true);
     try {
-      // 1. Instantly update local state
+      // 1. Instantly update local state to trigger Navigator move
       updateProfileState({ role });
       
       // 2. Refresh full profile in background
       await refreshProfile();
-
-      // 3. Explicitly force navigation to ensure we don't get stuck
-      setTimeout(() => {
-        // We must check if the user has a username to determine the correct next screen.
-        // AppNavigator swaps stacks based on this condition, so we must reset to an available route.
-        const hasUsername = !!profile?.username;
-        
-        if (role === 'athlete') {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: hasUsername ? 'Main' : routes.profileSetup }],
-          });
-        } else {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: hasUsername ? routes.coachDashboard as any : routes.coachSetup }],
-          });
-        }
-      }, 100);
     } catch (e) {
       console.error(e);
       setBtnLoading(false);

@@ -313,14 +313,14 @@ export const coachService = {
     }
 
     // Process and aggregate data by athlete
-    const flattened = ((data as any[]) || [])
+    const flattened = (data || [])
       .filter(item => item.session?.exercise_type === exerciseType)
       .map(item => ({
-        athleteId: item.athlete?.id,
-        fullName: item.athlete?.full_name,
-        username: item.athlete?.username,
-        reps: item.session?.total_reps,
-        quality: item.session?.quality_score,
+        athleteId: item.athlete.id,
+        fullName: item.athlete.full_name,
+        username: item.athlete.username,
+        reps: item.session.total_reps,
+        quality: item.session.quality_score,
         createdAt: item.created_at
       }));
 

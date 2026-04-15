@@ -26,13 +26,13 @@ export const useAnalysis = () => {
         onProgress?.(i / steps);
       }
 
-      // 2. Generate randomized mock results (requested: 5-15 reps)
-      const totalReps = Math.floor(Math.random() * 11) + 5; 
-      const goodReps = Math.floor(totalReps * (0.75 + Math.random() * 0.25));
-      const badReps = totalReps - goodReps;
-      const consistency = Math.floor(78 + Math.random() * 18);
-      const avgPower = Math.floor(62 + Math.random() * 32);
-      const avgSpeed = Number((0.9 + Math.random() * 0.5).toFixed(2));
+      // 2. Generate randomized mock results (requested: 7-13 reps, 60-90 consistency)
+      const totalReps = Math.floor(Math.random() * (13 - 7 + 1)) + 7; 
+      const badReps = Math.floor(Math.random() * 3); // 0, 1, or 2 bad reps
+      const goodReps = totalReps - badReps;
+      const consistency = Math.floor(Math.random() * (90 - 60 + 1)) + 60;
+      const avgPower = Math.floor(45 + Math.random() * 35); // Realistic non-elite power
+      const avgSpeed = Number((0.7 + Math.random() * 0.4).toFixed(2));
 
       const result: AnalysisResult = {
         success: true,

@@ -11,6 +11,7 @@ import { theme } from '@/theme';
 import { RootStackParamList } from '@/types/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { validation } from '@/utils/validation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -25,10 +26,7 @@ export function LoginScreen({ navigation }: Props) {
     const newErrors: Record<string, string> = {};
     
     // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
-      newErrors.email = 'Email is required';
-    } else if (!emailRegex.test(email.trim())) {
+    if (!validation.email(email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 

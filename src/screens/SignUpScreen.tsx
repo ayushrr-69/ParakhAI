@@ -10,6 +10,7 @@ import { routes } from '@/constants/routes';
 import { theme } from '@/theme';
 import { RootStackParamList } from '@/types/navigation';
 import { supabase } from '@/lib/supabase';
+import { validation } from '@/utils/validation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
@@ -24,23 +25,20 @@ export function SignUpScreen({ navigation }: Props) {
     const newErrors: Record<string, string> = {};
     
     // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
-      newErrors.email = 'Email is required';
-    } else if (!emailRegex.test(email.trim())) {
+    if (!validation.email(email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
     // Password validation
     if (!password) {
       newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    } else if (password.length < 8) {
+      newErrors.password = 'Security requires at least 8 characters';
     }
 
     // Name validation
-    if (!fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
+    if (!validation.fullName(fullName)) {
+      newErrors.fullName = 'Please enter a valid name (2-50 letters)';
     }
 
     setErrors(newErrors);
@@ -99,6 +97,7 @@ export function SignUpScreen({ navigation }: Props) {
                 return rest;
               });
             }}
+            maxLength={50}
             error={!!errors.fullName}
             errorMessage={errors.fullName}
           />

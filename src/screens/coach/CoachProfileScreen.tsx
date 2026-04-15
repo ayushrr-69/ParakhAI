@@ -6,55 +6,40 @@ import { AppShell } from '@/components/layout/AppShell';
 import { theme } from '@/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { coachService } from '@/services/coach';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { routes } from '@/constants/routes';
+import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/types/navigation';
 
 export function CoachProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const route = useRoute<any>();
-  const { user, profile: myProfile, signOut } = useAuth();
-  
-  const [inspectProfile, setInspectProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, profile, signOut } = useAuth();
   const [stats, setStats] = useState({ athletesCount: 0, reviewsCount: 0, teamQuality: 0 });
 
-  const coachId = route.params?.coachId;
-  const isOurs = !coachId || coachId === user?.id;
-  const profile = isOurs ? myProfile : inspectProfile;
-
   useEffect(() => {
-    const loadData = async () => {
+    const loadStats = async () => {
       try {
-        setLoading(true);
-        const targetId = coachId || user?.id;
-        if (!targetId) return;
-
-        // If inspecting someone else, fetch their profile first
-        if (!isOurs) {
-          const p = await coachService.getCoachProfile(targetId);
-          setInspectProfile(p);
-        }
-
-        const [athletes, inbox, teamAvg] = await Promise.all([
-          coachService.getMyAthletes(), // This should ideally be generic if it's external inspection, but usually only coach sees this
+        const [athletes, inbox, leaderboard] = await Promise.all([
+          coachService.getMyAthletes(),
           coachService.getInbox(),
-          coachService.getTeamAverage(targetId)
+          coachService.getTeamLeaderboard('pushups', 'all', 'quality')
         ]);
         
+        const avgQuality = leaderboard.length > 0 
+          ? Math.round(leaderboard.reduce((acc, curr) => acc + curr.quality, 0) / leaderboard.length)
+          : 0;
+
         setStats({
           athletesCount: (athletes || []).length,
           reviewsCount: (inbox || []).filter(i => i.status === 'reviewed').length,
-          teamQuality: teamAvg
+          teamQuality: avgQuality
         });
       } catch (error) {
         console.error('[CoachProfile] Error loading stats:', error);
-      } finally {
-        setLoading(false);
       }
     };
-    loadData();
-  }, [coachId, user?.id]);
+    loadStats();
+  }, []);
 
   const handleLogout = () => {
     Alert.alert(
@@ -118,8 +103,8 @@ export function CoachProfileScreen() {
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.heroSection}>
             <View style={styles.heroContainer}>
-              {(avatarUrl || profile?.avatar_url) ? (
-                <Image source={{ uri: avatarUrl || profile?.avatar_url }} style={styles.avatarLarge} />
+              {avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={styles.avatarLarge} />
               ) : (
                 <View style={[styles.avatarLarge, styles.avatarInitial]}>
                   <AppText variant="hero" weight="bold" color={theme.colors.textPrimary}>{initial}</AppText>
@@ -129,14 +114,8 @@ export function CoachProfileScreen() {
                   <AppText variant="tiny" weight="bold" color={theme.colors.textPrimary}>PRO MENTOR</AppText>
               </View>
             </View>
-            {loading ? (
-              <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 20 }} />
-            ) : (
-              <>
-                <AppText variant="hero" weight="bold" style={{ marginTop: theme.spacing.md }}>{profile?.full_name || 'Loading...'}</AppText>
-                <AppText variant="bodyLarge" color={theme.colors.placeholder} style={{ marginTop: 2 }}>@{profile?.username || 'coach'}</AppText>
-              </>
-            )}
+            <AppText variant="hero" weight="bold" style={{ marginTop: theme.spacing.md }}>{profile?.full_name}</AppText>
+            <AppText variant="bodyLarge" color={theme.colors.placeholder} style={{ marginTop: 2 }}>@{profile?.username || 'coach'}</AppText>
           </View>
 
           <View style={styles.section}>

@@ -119,6 +119,7 @@ export function AthleteCoachScreen() {
       qualityScore: sessionData.quality_score,
       avgPower: sessionData.avg_power,
       avgSpeed: sessionData.avg_speed,
+      video_url: sessionData.video_url,
       insights: sessionData.insights
     };
     navigation.navigate(routes.analysisResults, {
@@ -168,7 +169,7 @@ export function AthleteCoachScreen() {
 
   if (loading && !refreshing) {
     return (
-      <AppShell>
+      <AppShell hasTabBar={true}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator color={theme.colors.primary} size="large" />
         </View>
@@ -180,6 +181,7 @@ export function AthleteCoachScreen() {
     <>
       <AppShell 
         scrollable 
+        hasTabBar={true}
         refreshControl={
           <RefreshControl 
             refreshing={refreshing} 
@@ -225,7 +227,13 @@ export function AthleteCoachScreen() {
 
           {coachProfile && (
             <View style={styles.heroSection}>
-              <Pressable style={styles.heroAvatarContainer} onPress={() => setShowProfileModal(true)}>
+              <Pressable 
+                style={styles.heroAvatarContainer} 
+                onPress={() => {
+                  setSelectedCoachForModal(coachProfile);
+                  setShowProfileModal(true);
+                }}
+              >
                 {coachProfile.avatar_url ? (
                   <Image source={{ uri: coachProfile.avatar_url }} style={styles.heroAvatar} />
                 ) : (
@@ -244,6 +252,12 @@ export function AthleteCoachScreen() {
                    <AppText variant="bodySmall" weight="bold" color={theme.colors.primary}>★ 4.9</AppText>
                    <View style={styles.dotSeparator} />
                    <AppText variant="bodySmall" color={theme.colors.placeholder}>124 REVIEWS</AppText>
+                   {coachProfile.location && (
+                     <>
+                       <View style={styles.dotSeparator} />
+                       <AppText variant="bodySmall" color={theme.colors.placeholder} numberOfLines={1}>{coachProfile.location.toUpperCase()}</AppText>
+                     </>
+                   )}
                 </View>
               </View>
               <View style={styles.heroActions}>
@@ -254,7 +268,13 @@ export function AthleteCoachScreen() {
                 >
                   <AppText variant="body" weight="bold" color={theme.colors.textDark}>MESSAGE COACH</AppText>
                 </Pressable>
-                <Pressable style={styles.heroSecondaryBtn} onPress={() => setShowProfileModal(true)}>
+                <Pressable 
+                  style={styles.heroSecondaryBtn} 
+                  onPress={() => {
+                    setSelectedCoachForModal(coachProfile);
+                    setShowProfileModal(true);
+                  }}
+                >
                   <AppText variant="bodySmall" weight="bold" color={theme.colors.primary}>VIEW COACH PROFILE</AppText>
                 </Pressable>
               </View>
@@ -356,6 +376,15 @@ export function AthleteCoachScreen() {
                 )}
                 <AppText variant="hero" weight="bold" style={{ marginTop: 16 }}>{selectedCoachForModal?.full_name}</AppText>
                 <AppText variant="body" color={theme.colors.placeholder}>{selectedCoachForModal?.expertise_level || 'Elite Mentor'}</AppText>
+                {selectedCoachForModal?.location && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 }}>
+                    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+                      <Path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke={theme.colors.placeholder} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                      <Circle cx={12} cy={10} r={3} stroke={theme.colors.placeholder} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                    </Svg>
+                    <AppText variant="bodySmall" color={theme.colors.placeholder}>{selectedCoachForModal.location}</AppText>
+                  </View>
+                )}
               </View>
 
               <View style={styles.modalBody}>
@@ -443,7 +472,6 @@ export function AthleteCoachScreen() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: theme.spacing.xl,
-    paddingBottom: 100,
   },
   loadingContainer: {
     flex: 1,

@@ -7,9 +7,8 @@ import Svg, { Path } from 'react-native-svg';
 import { AppText } from '@/components/common/AppText';
 import { BackButton } from '@/components/common/BackButton';
 import { AppShell } from '@/components/layout/AppShell';
-import * as FileSystem from 'expo-file-system';
-import { supabase } from '@/lib/supabase';
 import { useAnalysis } from '@/hooks/useAnalysis';
+import { historyService } from '@/services/history';
 import { theme } from '@/theme';
 import { RootStackParamList } from '@/types/navigation';
 import { routes } from '@/constants/routes';
@@ -24,6 +23,7 @@ export function VideoUploadScreen({ route, navigation }: Props) {
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const [glContext, setGlContext] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const { isAnalyzing, startAnalysis, error } = useAnalysis();
 
   const exerciseLabel = exerciseType.charAt(0).toUpperCase() + exerciseType.slice(1).replace('_', ' ');
@@ -31,7 +31,7 @@ export function VideoUploadScreen({ route, navigation }: Props) {
 
   const pickVideo = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['videos'],
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
       allowsEditing: true,
       quality: 1,
     });
@@ -44,6 +44,7 @@ export function VideoUploadScreen({ route, navigation }: Props) {
   };
 
   const handleAnalysis = async () => {
+    if (isAnalyzing || isSaving) return;
     if (!videoUri || !videoDuration) {
       Alert.alert('No video selected', 'Please select a video from your gallery first.');
       return;
@@ -55,41 +56,45 @@ export function VideoUploadScreen({ route, navigation }: Props) {
       const results = await startAnalysis(videoUri, filename, exerciseType, videoDuration, (p) => {
           setProgress(Math.round(p * 100));
       }, glContext);
-      navigation.navigate(routes.analysisResults, { results, exerciseType, videoPath: videoUri });
+
+      // Save to history before navigating
+      const sessionData = {
+        exerciseType: exerciseType as any,
+        totalReps: results.analysis.summary.total_reps,
+        goodReps: results.analysis.summary.good_reps,
+        consistency: results.analysis.summary.consistency_score || results.analysis.metadata.consistency_score,
+        qualityScore: Math.min(90, Math.max(60, results.analysis.summary.quality_score || Math.round((results.analysis.summary.good_reps / (results.analysis.summary.total_reps || 1)) * 100))),
+        avgPower: results.analysis.summary.avg_power || 0,
+        avgSpeed: results.analysis.summary.avg_speed || 0,
+        insights: {
+          review: "Video upload analysis completed.",
+          correction: "Check your range of motion.",
+          validation: "Session successfully processed."
+        }
+      };
+
+      setIsSaving(true);
+      const sessionId = await historyService.addSession(sessionData, videoUri);
+      
+      navigation.replace(routes.analysisResults, { 
+        results, 
+        exerciseType,
+        session: { ...sessionData, id: sessionId, date: new Date().toISOString() }
+      });
     } catch (err: any) {
+      setIsSaving(false);
       Alert.alert('Analysis Failed', err.message || 'Something went wrong');
     }
   };
 
   return (
-    <AppShell 
-      scrollable 
-      header={
+    <AppShell scrollable>
+      <View style={styles.container}>
         <View style={styles.header}>
           <BackButton onPress={() => navigation.goBack()} />
           <AppText variant="heading" weight="semibold">Process {exerciseLabel}</AppText>
         </View>
-      }
-      footer={
-        <View style={styles.footer}>
-          <Pressable 
-            style={[styles.primaryButton, (!videoUri || isAnalyzing) && styles.disabledButton]} 
-            onPress={handleAnalysis}
-            disabled={!videoUri || isAnalyzing}
-          >
-            {isAnalyzing ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <ActivityIndicator color={theme.colors.textDark} />
-                <AppText variant="bodyLarge" weight="semibold" color={theme.colors.textDark}>Analyzing: {progress}%</AppText>
-              </View>
-            ) : (
-              <AppText variant="bodyLarge" weight="semibold" color={theme.colors.textDark}>Start Analysis</AppText>
-            )}
-          </Pressable>
-        </View>
-      }
-    >
-      <View style={styles.container}>
+
         <View style={styles.content}>
           <Pressable 
             style={[styles.uploadBox, { height: uploadBoxHeight }, videoUri && styles.uploadBoxSelected]} 
@@ -126,32 +131,44 @@ export function VideoUploadScreen({ route, navigation }: Props) {
           </Pressable>
 
           <View style={styles.instructions}>
-            <View style={styles.glassHeader}>
-              <View style={[styles.statusDot, { backgroundColor: theme.colors.success }]} />
-              <AppText variant="bodySmall" weight="bold" color={theme.colors.success} style={{ letterSpacing: 1 }}>
-                READY FOR ANALYSIS
-              </AppText>
+            <View style={styles.warningRow}>
+              <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+                <Path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke={theme.colors.error} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
+              <AppText variant="bodySmall" weight="semibold" color={theme.colors.error}>PROCESSING READY</AppText>
             </View>
-            <View style={styles.instructionList}>
-              <View style={styles.instructionItem}>
-                <AppText variant="bodySmall" color={theme.colors.placeholder}>• Use a stable side-view angle for accuracy</AppText>
-              </View>
-              <View style={styles.instructionItem}>
-                <AppText variant="bodySmall" color={theme.colors.placeholder}>• Ensure lighting is clear and consistent</AppText>
-              </View>
-              <View style={styles.instructionItem}>
-                <AppText variant="bodySmall" color={theme.colors.placeholder}>• Position yourself fully within the frame</AppText>
-              </View>
-            </View>
+            <AppText variant="bodySmall" color={theme.colors.placeholder}>• Pick a clear workout clip for the best analysis flow</AppText>
+            <AppText variant="bodySmall" color={theme.colors.placeholder}>• Side view is still the best setup for form checks</AppText>
+            <AppText variant="bodySmall" color={theme.colors.placeholder}>• Full body visibility gives the cleanest results</AppText>
           </View>
 
-          </View>
-          
-          <GLView
-            style={{ opacity: 0, position: 'absolute', width: 1, height: 1 }}
-            onContextCreate={setGlContext}
-          />
         </View>
+
+        <View style={styles.footer}>
+          <Pressable 
+            style={[styles.primaryButton, (!videoUri || isAnalyzing || isSaving) && styles.disabledButton]} 
+            onPress={handleAnalysis}
+            disabled={!videoUri || isAnalyzing || isSaving}
+          >
+            {isAnalyzing || isSaving ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <ActivityIndicator color={theme.colors.textDark} />
+                <AppText variant="bodyLarge" weight="semibold" color={theme.colors.textDark}>
+                  {isAnalyzing ? `Analyzing: ${progress}%` : 'Saving Results...'}
+                </AppText>
+              </View>
+            ) : (
+              <AppText variant="bodyLarge" weight="semibold" color={theme.colors.textDark}>Start Analysis</AppText>
+            )}
+          </Pressable>
+        </View>
+
+        <GLView
+          style={{ opacity: 0, position: 'absolute', width: 1, height: 1 }}
+          onContextCreate={setGlContext}
+        />
+
+      </View>
     </AppShell>
   );
 }
@@ -165,87 +182,63 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.md,
+    marginTop: theme.spacing.md,
   },
   content: {
     justifyContent: 'flex-start',
     gap: theme.spacing.lg,
-    marginTop: theme.spacing.md,
   },
   uploadBox: {
     borderRadius: theme.radii.largeCard,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 2,
+    borderColor: theme.colors.surface,
+    borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    overflow: 'hidden',
+    backgroundColor: theme.colors.cardDark,
   },
   uploadBoxSelected: {
-    borderColor: 'rgba(69, 197, 136, 0.3)',
-    backgroundColor: 'rgba(69, 197, 136, 0.04)',
+    borderColor: theme.colors.success,
+    borderStyle: 'solid',
   },
   placeholderContent: {
     alignItems: 'center',
-    gap: theme.spacing.md,
-    padding: theme.spacing.xl,
+    gap: theme.spacing.sm,
   },
   selectedContent: {
     alignItems: 'center',
     gap: theme.spacing.sm,
-    padding: theme.spacing.xl,
   },
   fileName: {
     textAlign: 'center',
     maxWidth: 240,
-    opacity: 0.8,
   },
   instructions: {
+    gap: theme.spacing.xs,
     padding: theme.spacing.lg,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: theme.radii.largeCard,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radii.card,
   },
-  glassHeader: {
+  warningRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: theme.spacing.md,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  instructionList: {
-    gap: theme.spacing.sm,
-  },
-  instructionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    marginBottom: 4,
   },
 
   footer: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.md,
   },
   primaryButton: {
-    height: 62,
+    height: 56,
     backgroundColor: theme.colors.primary,
     borderRadius: theme.radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
   },
   disabledButton: {
     backgroundColor: theme.colors.surface,
-    opacity: 0.4,
+    opacity: 0.5,
   },
 });

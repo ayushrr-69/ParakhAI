@@ -75,13 +75,15 @@ export function BottomNav({ state, navigation, descriptors }: MaterialTopTabBarP
 
 const styles = StyleSheet.create({
   container: {
+    position: 'absolute',
+    bottom: 40,
     alignSelf: 'center',
     width: 'auto', // Dynamic width based on content
     height: theme.layout.navHeight,
     borderRadius: theme.radii.full,
-    backgroundColor: 'rgba(35, 34, 32, 0.94)',
+    backgroundColor: 'rgba(35, 34, 32, 0.9)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -89,9 +91,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.22,
-    shadowRadius: 24,
-    elevation: 14,
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 15,
+    zIndex: 1000,
   },
   iconButton: {
     width: 48,

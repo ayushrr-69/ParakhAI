@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { historyService, Session } from '@/services/history';
 import { coachService, Submission, Enrollment, AppNotification } from '@/services/coach';
 import { supabase } from '@/lib/supabase';
@@ -137,6 +137,31 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await loadData();
     }
   }, [hasLoadedInitially, loadData]);
+
+  // Real-time sync for coach profile updates
+  useEffect(() => {
+    if (!profile?.coach_id) return;
+
+    const channel = supabase.channel(`coach-sync-${profile.coach_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${profile.coach_id}`
+        },
+        (payload) => {
+          console.log('[DataContext] Coach profile updated:', payload.new);
+          setCoachProfile(payload.new);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.coach_id]);
 
   return (
     <DataContext.Provider value={{

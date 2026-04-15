@@ -16,8 +16,8 @@ export function PlaceholderScreen({ navigation, route }: Props) {
   const canGoBack = navigation.canGoBack();
 
   return (
-    <AppShell footerMode='sticky'>
-      <View style={styles.screen}>
+    <AppShell scrollable hasTabBar={true} footerMode='sticky'>
+      <View style={styles.container}>
         <View style={styles.header}>
           {canGoBack && (
             <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -28,20 +28,18 @@ export function PlaceholderScreen({ navigation, route }: Props) {
           )}
         </View>
 
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-          <View style={styles.brandMark}>
-            <View style={[styles.brandChip, { backgroundColor: theme.colors.primary }]} />
-            <View style={[styles.brandChip, { backgroundColor: theme.colors.success }]} />
-            <View style={[styles.brandChip, { backgroundColor: theme.colors.lavender }]} />
-          </View>
-          <AppText variant='hero' weight='semibold'>{content.title}</AppText>
-          <AppText variant='bodyLarge' color={theme.colors.placeholder} style={styles.message}>{content.message}</AppText>
-          {route.name === 'Profile' ? (
-            <Pressable onPress={() => navigation.navigate('More', { content: { title: 'More', message: 'More athlete tools will appear here.' } })} style={styles.inlineButton}>
-              <AppText variant='bodyLarge' weight='semibold' color={theme.colors.primary}>Open More</AppText>
-            </Pressable>
-          ) : null}
-        </ScrollView>
+        <View style={styles.brandMark}>
+          <View style={[styles.brandChip, { backgroundColor: theme.colors.primary }]} />
+          <View style={[styles.brandChip, { backgroundColor: theme.colors.success }]} />
+          <View style={[styles.brandChip, { backgroundColor: theme.colors.lavender }]} />
+        </View>
+        <AppText variant='hero' weight='semibold' style={{ textAlign: 'center' }}>{content.title}</AppText>
+        <AppText variant='bodyLarge' color={theme.colors.placeholder} style={styles.message}>{content.message}</AppText>
+        {route.name === 'Profile' ? (
+          <Pressable onPress={() => navigation.navigate('More', { content: { title: 'More', message: 'More athlete tools will appear here.' } })} style={styles.inlineButton}>
+            <AppText variant='bodyLarge' weight='semibold' color={theme.colors.primary}>Open More</AppText>
+          </Pressable>
+        ) : null}
       </View>
     </AppShell>
   );
@@ -60,7 +58,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: theme.spacing.xl,
-    paddingBottom: theme.layout.navHeight + theme.spacing.xxxl + theme.spacing.lg,
   },
   header: {
     height: 60,

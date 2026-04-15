@@ -40,8 +40,8 @@ export const roleOptions: RoleOption[] = [
     imageAccent: colors.lavender,
   },
   {
-    key: 'coach',
-    title: 'Coach',
+    key: 'official',
+    title: 'Official',
     imageAccent: colors.accentOrange,
   },
 ];
@@ -109,57 +109,3 @@ export const subroutineBreakdown = [
   { key: 'sprint', title: 'Sprint', percentage: '28%', backgroundColor: colors.success },
   { key: 'jump', title: 'Jump', percentage: '19%', backgroundColor: colors.accentOrange },
 ];
-
-export const mockAnalysisFeedback = {
-  pushups: {
-    review: [
-      "Solid control on the descent phase. Your tempo was consistent throughout the set.",
-      "Good chest-to-floor depth on most reps, though fatigue set in toward the end.",
-      "Strong stable core maintained, preventing hip sag during the high-volume portion."
-    ],
-    correction: [
-      "Focus on fully extending your elbows at the top for maximum pectoralis engagement.",
-      "Check your hand placement; slightly wider than shoulders will improve base stability.",
-      "Prevent your head from drooping; keep a neutral spine by looking 6 inches ahead."
-    ],
-    validation: [
-      "Neural depth tracking verified at 94% accuracy.",
-      "Elbow lockout consistency checked: PASS.",
-      "Mid-section stability (Core) detected: EXCELLENT."
-    ]
-  },
-  squats: {
-    review: [
-      "Excellent depth achieved, consistently breaking the parallel plane.",
-      "Dynamic balance was centered, with weight properly distributed on the heels.",
-      "Explosive power on the ascent was notable in the first 8 repetitions."
-    ],
-    correction: [
-      "Ensure your knee follows the line of your toes to prevent inward collapse.",
-      "Maintain an upright chest to keep the center of mass over your mid-foot.",
-      "Slow down the eccentric (downward) phase to increase time-under-tension."
-    ],
-    validation: [
-      "Parallel plane achievement verified: 100%.",
-      "Hip-to-Knee alignment tracking: PASS.",
-      "Heel-contact pressure sensor (AI): CONSTANT."
-    ]
-  },
-  bicep_curls: {
-    review: [
-      "Strict form maintained with minimal shoulder involvement or body sway.",
-      "Full range of motion achieved from complete extension to peak contraction.",
-      "Steady cadence preserved, maximizing the metabolic stress on the biceps."
-    ],
-    correction: [
-      "Keep your elbows pinned to your ribs to isolate the bicep heads better.",
-      "Avoid using momentum at the bottom; start each rep from a dead stop.",
-      "Ensure a slow, controlled negative phase to prevent joint strain."
-    ],
-    validation: [
-      "Elbow pivot-point isolation: PASS.",
-      "Supination degree at peak: 88% OPTIMAL.",
-      "Swing momentum dampening: VERIFIED."
-    ]
-  }
-};

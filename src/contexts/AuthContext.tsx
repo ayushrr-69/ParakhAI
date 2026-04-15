@@ -18,13 +18,9 @@ export interface UserProfile {
   coach_id: string | null;
   coach_name: string | null;
   bio: string | null;
-  location?: string | null;
-  specialties?: string[] | null;
-  experience?: string | null;
-  rating?: number;
-  reviews_count?: number;
   specialties: string[] | null;
   expertise_level: string | null;
+  location: string | null;
   updated_at: string;
 }
 
@@ -118,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         bio: null,
         specialties: [],
         expertise_level: null,
+        location: null,
         updated_at: new Date().toISOString(),
         ...updates
       } as UserProfile;
@@ -137,11 +134,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    // 2. Configure Google Sign-In
-    GoogleSignin.configure({
-      webClientId: '64354112639-njlln67o7pa3m1l7gq40992flvara2qa.apps.googleusercontent.com',
-      offlineAccess: true,
-    });
+    // 2. Configure Google Sign-In with safety check
+    try {
+      if (GoogleSignin) {
+        GoogleSignin.configure({
+          webClientId: '64354112639-0n1s0ik7kvkcoupub66hfpoajsk94ndd.apps.googleusercontent.com',
+          offlineAccess: true,
+        });
+      }
+    } catch (e) {
+      console.error('[AuthContext] Google Sign-In initialization failed:', e);
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);

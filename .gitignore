@@ -1,7 +1,4 @@
-# Node
-node_modules/
-.npm
-.eslintcache
+node_modules
 
 # IDE & Editor
 .idea/
@@ -11,32 +8,20 @@ node_modules/
 *~
 .DS_Store
 
-# Android Studio & Gradle
+# Android Studio
+*.iml
 .gradle/
 local.properties
 *.apk
 *.aar
-build/
-bin/
-out/
-captures/
-.externalNativeBuild/
-.cxx/
-android/.gradle/
-android/app/build/
-android/build/
-android/.kotlin/
-
-# Logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Expo
 .expo/
 .expo-shared/
 dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # OS
 Thumbs.db
@@ -45,7 +30,6 @@ Thumbs.db
 # Environments & Secrets
 .env
 .env.local
-.env.key
 .env.*
 !.env.example
 
@@ -63,6 +47,9 @@ coverage/
 # Bundle artifacts
 *.jsbundle
 
-# Project Specific
-SE project.pdf
-supabase/.temp/
+# Local Config
+local.properties
+.bundle/
+node_modules/
+bin/
+out/

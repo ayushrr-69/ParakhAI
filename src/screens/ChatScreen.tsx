@@ -33,7 +33,7 @@ export function ChatScreen() {
     loadMessages();
 
     // Real-time subscription — deduplicates & scrolls to end
-    const subscription = messagingService.subscribeToMessages(targetUserId, (newMsg) => {
+    const subscription = messagingService.subscribeToMessages(user!.id, targetUserId, (newMsg) => {
       setMessages(prev => {
         if (prev.find(m => m.id === newMsg.id)) return prev;
         return [...prev, newMsg];

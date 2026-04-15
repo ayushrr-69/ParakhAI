@@ -1,22 +1,20 @@
 import { useState, useCallback, useMemo } from 'react';
-import { ScrollView, StyleSheet, View, Pressable } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { AppText } from '@/components/common/AppText';
 import { AppShell } from '@/components/layout/AppShell';
-import { ActionBlockGrid } from '@/components/home/ActionBlockGrid';
-import { homeTestActions } from '@/constants/content';
 import { theme } from '@/theme';
 import { RootStackParamList } from '@/types/navigation';
-import { historyService, Session } from '@/services/history';
 import { routes } from '@/constants/routes';
+import { historyService, Session } from '@/services/history';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Tests'>;
 
 export function TestsScreen({ navigation }: Props) {
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [filterType, setFilterType] = useState('all');
-  const [filterDate, setFilterDate] = useState('all');
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterDate, setFilterDate] = useState<string>('all');
   const [sortHigh, setSortHigh] = useState(false);
 
   useFocusEffect(
@@ -49,7 +47,7 @@ export function TestsScreen({ navigation }: Props) {
 
     // Sort
     if (sortHigh) {
-      result.sort((a, b) => (b.qualityScore || 0) - (a.qualityScore || 0));
+      result.sort((a, b) => ((b as any).qualityScore || 0) - ((a as any).qualityScore || 0));
     } else {
       result.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
@@ -58,109 +56,107 @@ export function TestsScreen({ navigation }: Props) {
   }, [sessions, filterType, filterDate, sortHigh]);
 
   const handleSessionPress = (session: Session) => {
-    navigation.navigate(routes.analysisResults, {
+    navigation.navigate(routes.analysisResults as any, {
       session: session,
       exerciseType: session.exerciseType as any,
     });
   };
 
   return (
-    <AppShell footerMode='sticky'>
-      <View style={styles.screen}>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <AppText variant='heading' weight='semibold'>Tests</AppText>
-            <AppText variant='bodySmall' color={theme.colors.placeholder}>Review and analyze your training history</AppText>
-          </View>
+    <AppShell scrollable hasTabBar={true}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <AppText variant='heading' weight='semibold'>Tests</AppText>
+          <AppText variant='bodySmall' color={theme.colors.placeholder}>Review and analyze your training history</AppText>
+        </View>
 
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <AppText variant='title' weight='semibold'>Filters</AppText>
-              <Pressable onPress={() => setSortHigh(!sortHigh)} style={[styles.sortBtn, sortHigh && styles.sortBtnActive]}>
-                <AppText variant="tiny" weight="bold" color={sortHigh ? theme.colors.surface : theme.colors.placeholder}>
-                  {sortHigh ? 'HIGHEST SCORE' : 'LATEST FIRST'}
-                </AppText>
-              </Pressable>
-            </View>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <AppText variant='title' weight='semibold'>Filters</AppText>
+            <Pressable onPress={() => setSortHigh(!sortHigh)} style={[styles.sortBtn, sortHigh && styles.sortBtnActive]}>
+              <AppText variant="tiny" weight="bold" color={sortHigh ? theme.colors.surface : theme.colors.placeholder}>
+                {sortHigh ? 'HIGHEST SCORE' : 'LATEST FIRST'}
+              </AppText>
+            </Pressable>
+          </View>
+          
+          <View style={styles.filterGroup}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+              {['all', 'pushups', 'squats', 'bicep_curls'].map(type => (
+                <Pressable 
+                  key={type} 
+                  onPress={() => setFilterType(type)}
+                  style={[styles.filterChip, filterType === type && styles.filterChipActive]}
+                >
+                  <AppText variant="tiny" weight="bold" color={filterType === type ? theme.colors.surface : theme.colors.placeholder}>
+                    {type.replace('_', ' ').toUpperCase()}
+                  </AppText>
+                </Pressable>
+              ))}
+            </ScrollView>
             
-            <View style={styles.filterGroup}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
-                {['all', 'pushups', 'squats', 'bicep_curls'].map(type => (
-                  <Pressable 
-                    key={type} 
-                    onPress={() => setFilterType(type)}
-                    style={[styles.filterChip, filterType === type && styles.filterChipActive]}
-                  >
-                    <AppText variant="tiny" weight="bold" color={filterType === type ? theme.colors.surface : theme.colors.placeholder}>
-                      {type.replace('_', ' ').toUpperCase()}
-                    </AppText>
-                  </Pressable>
-                ))}
-              </ScrollView>
-              
-              <View style={styles.filterRow}>
-                {[
-                  { label: 'ALL TIME', val: 'all' },
-                  { label: 'LAST 7D', val: '7d' },
-                  { label: 'LAST 30D', val: '30d' }
-                ].map(d => (
-                  <Pressable 
-                    key={d.val} 
-                    onPress={() => setFilterDate(d.val)}
-                    style={[styles.dateChip, filterDate === d.val && styles.dateChipActive]}
-                  >
-                    <AppText variant="tiny" weight="bold" color={filterDate === d.val ? theme.colors.textDark : theme.colors.placeholder}>
-                      {d.label}
-                    </AppText>
-                  </Pressable>
-                ))}
-              </View>
+            <View style={styles.filterRow}>
+              {[
+                { label: 'ALL TIME', val: 'all' },
+                { label: 'LAST 7D', val: '7d' },
+                { label: 'LAST 30D', val: '30d' }
+              ].map(d => (
+                <Pressable 
+                  key={d.val} 
+                  onPress={() => setFilterDate(d.val)}
+                  style={[styles.dateChip, filterDate === d.val && styles.dateChipActive]}
+                >
+                  <AppText variant="tiny" weight="bold" color={filterDate === d.val ? theme.colors.textDark : theme.colors.placeholder}>
+                    {d.label}
+                  </AppText>
+                </Pressable>
+              ))}
             </View>
           </View>
+        </View>
 
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <AppText variant='title' weight='semibold'>Archive</AppText>
-              <AppText variant='bodySmall' color={theme.colors.placeholder}>{filteredSessions.length} sessions found</AppText>
-            </View>
-            
-            {filteredSessions.length === 0 ? (
-              <View style={styles.emptyState}>
-                <AppText variant='bodyLarge' color={theme.colors.placeholder} style={{ textAlign: 'center' }}>
-                  No sessions match your filters.
-                </AppText>
-              </View>
-            ) : (
-              <View style={styles.historyList}>
-                {filteredSessions.map((session, idx) => {
-                  const bgColors = [theme.colors.lavender, theme.colors.success, theme.colors.accentOrange];
-                  const cardBg = bgColors[idx % bgColors.length];
-                  return (
-                    <Pressable 
-                      key={session.id} 
-                      style={[styles.historyItem, { backgroundColor: cardBg }]}
-                      onPress={() => handleSessionPress(session)}
-                    >
-                      <View style={styles.historyInfo}>
-                        <AppText variant='body' weight='semibold' color={theme.colors.textDark}>
-                          {session.exerciseType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                        </AppText>
-                        <AppText variant='bodySmall' color="rgba(0,0,0,0.5)">
-                          {new Date(session.date).toLocaleDateString()} • {session.totalReps} Reps
-                        </AppText>
-                      </View>
-                      <View style={[styles.scoreBadge, { backgroundColor: 'rgba(0,0,0,0.08)' }]}>
-                        <AppText variant='bodySmall' weight='bold' color={theme.colors.textDark}>
-                          {session.qualityScore || 0}%
-                        </AppText>
-                      </View>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            )}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <AppText variant='title' weight='semibold'>Archive</AppText>
+            <AppText variant='bodySmall' color={theme.colors.placeholder}>{filteredSessions.length} sessions found</AppText>
           </View>
-        </ScrollView>
+          
+          {filteredSessions.length === 0 ? (
+            <View style={styles.emptyState}>
+              <AppText variant='bodyLarge' color={theme.colors.placeholder} style={{ textAlign: 'center' }}>
+                No sessions match your filters.
+              </AppText>
+            </View>
+          ) : (
+            <View style={styles.historyList}>
+              {filteredSessions.map((session, idx) => {
+                const bgColors = [theme.colors.lavender, theme.colors.success, theme.colors.accentOrange];
+                const cardBg = bgColors[idx % bgColors.length];
+                return (
+                  <Pressable 
+                    key={session.id} 
+                    style={[styles.historyItem, { backgroundColor: cardBg }]}
+                    onPress={() => handleSessionPress(session)}
+                  >
+                    <View style={styles.historyInfo}>
+                      <AppText variant='body' weight='semibold' color={theme.colors.textDark}>
+                        {session.exerciseType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                      </AppText>
+                      <AppText variant='bodySmall' color="rgba(0,0,0,0.5)">
+                        {new Date(session.date).toLocaleDateString()} • {session.totalReps} Reps
+                      </AppText>
+                    </View>
+                    <View style={[styles.scoreBadge, { backgroundColor: 'rgba(0,0,0,0.08)' }]}>
+                      <AppText variant='bodySmall' weight='bold' color={theme.colors.textDark}>
+                        {(session as any).qualityScore || 0}%
+                      </AppText>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+        </View>
       </View>
     </AppShell>
   );
@@ -175,7 +171,6 @@ const styles = StyleSheet.create({
   },
   container: {
     paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.layout.navHeight + theme.spacing.xxxl,
     gap: theme.spacing.xl,
   },
   header: {

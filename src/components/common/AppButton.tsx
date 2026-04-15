@@ -8,23 +8,13 @@ type AppButtonProps = {
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'circular';
   leftIcon?: ReactNode;
-  disabled?: boolean;
 };
 
-export function AppButton({ label, onPress, variant = 'primary', leftIcon, disabled }: AppButtonProps) {
+export function AppButton({ label, onPress, variant = 'primary', leftIcon }: AppButtonProps) {
   const isCircular = variant === 'circular';
 
   return (
-    <Pressable 
-      onPress={onPress} 
-      disabled={disabled}
-      style={({ pressed }) => [
-        styles.base, 
-        styles[variant], 
-        pressed && styles.pressed,
-        disabled && styles.disabled
-      ]}
-    >
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.base, styles[variant], pressed && styles.pressed]}>
       <View style={styles.row}>
         {leftIcon}
         {!isCircular ? (
@@ -72,8 +62,5 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.86,
-  },
-  disabled: {
-    opacity: 0.5,
   },
 });

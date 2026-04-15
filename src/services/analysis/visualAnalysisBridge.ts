@@ -1,4 +1,4 @@
-import { AnalysisResult } from '@/types/analysis';
+import { AnalysisResult } from '@/services/api/analysisService';
 
 export interface VisualAnalysisRequest {
   videoUri: string;

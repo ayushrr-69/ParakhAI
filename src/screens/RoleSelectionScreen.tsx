@@ -43,7 +43,7 @@ export function RoleSelectionScreen({ navigation }: Props) {
     if (!user) return;
     
     // Process role selection (athlete or coach)
-    const role = selectedKey as 'athlete' | 'coach';
+    const role = selectedKey; // Keys are already 'athlete' or 'coach'
     setLoading(true);
     try {
       const { error } = await supabase

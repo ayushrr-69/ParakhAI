@@ -154,6 +154,7 @@ export function CoachReviewScreen({ route, navigation }: Props) {
               placeholderTextColor={theme.colors.placeholder}
               multiline
               value={feedback}
+              maxLength={1000}
               onChangeText={(t) => {
                 setFeedback(t);
                 if (error) setError(false);

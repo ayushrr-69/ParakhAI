@@ -10,6 +10,7 @@ import { RootStackParamList } from '@/types/navigation';
 import { routes } from '@/constants/routes';
 import { useAuth } from '@/contexts/AuthContext';
 import { coachService } from '@/services/coach';
+import { validation } from '@/utils/validation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileSetup'>;
 
@@ -62,29 +63,40 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
   const [inspectedCoach, setInspectedCoach] = useState<any | null>(null);
   const [introMessage, setIntroMessage] = useState('');
   const [showIntroModal, setShowIntroModal] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
 
-  const validateStep = (currentStep: number) => {
+  const validateStep = async (currentStep: number) => {
     const newErrors: Record<string, string> = {};
     
     if (mode === 'setup') {
-      if (currentStep === 1) { // Bio step
-        if (!fullName.trim()) newErrors.fullName = 'Full name is required';
-        if (!username.trim()) {
-          newErrors.username = 'Username is required';
-        } else if (!/^[a-zA-Z0-9_]{3,20}$/.test(username.trim())) {
-          newErrors.username = '3-20 characters, alphanumeric and underscores only';
+      if (currentStep === 1) { // Identity step
+        if (!validation.fullName(fullName)) {
+          newErrors.fullName = 'Please enter a valid name (2-50 letters)';
+        }
+        
+        if (!validation.username(username)) {
+          newErrors.username = '3-15 characters, alphanumeric and underscores only';
+        } else {
+          // Check uniqueness
+          setIsCheckingUsername(true);
+          const available = await validation.isUsernameAvailable(username, profile?.id);
+          setIsCheckingUsername(false);
+          
+          if (!available) {
+            newErrors.username = 'Username is already taken';
+          }
         }
       } else if (currentStep === 3) { // Metrics step
-        const w = parseFloat(weight);
-        const h = parseFloat(height);
-        if (!weight || isNaN(w) || w <= 0 || w > 500) newErrors.weight = 'Enter valid weight';
-        if (!height || isNaN(h) || h <= 0 || h > 300) newErrors.height = 'Enter valid height';
+        const isWeightValid = validation.metric(weight, units === 'metric' ? 30 : 66, units === 'metric' ? 300 : 660);
+        const isHeightValid = validation.metric(height, units === 'metric' ? 100 : 40, units === 'metric' ? 250 : 100);
+
+        if (!isWeightValid) newErrors.weight = `Weight must be ${units === 'metric' ? '30-300 kg' : '66-660 lbs'}`;
+        if (!isHeightValid) newErrors.height = `Height must be ${units === 'metric' ? '100-250 cm' : '40-100 in'}`;
       }
     } else if (mode === 'changeCoach') {
-      // No extra text fields yet in changeCoach mode besides discovery
+      // No extra text fields yet
     } else if (mode === 'edit') {
-       // Similar to setup steps if edited
+       // Similar validation logic could be applied here if needed
     }
 
     setErrors(newErrors);
@@ -148,9 +160,10 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     Keyboard.dismiss();
-    if (!validateStep(step)) return;
+    const isValid = await validateStep(step);
+    if (!isValid) return;
 
     if (step < totalSteps - 1) {
       Animated.timing(slideAnim, {
@@ -176,7 +189,8 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
 
   const handleFinalSave = async () => {
     Keyboard.dismiss();
-    if (!validateStep(step)) return;
+    const isValid = await validateStep(step);
+    if (!isValid) return;
 
     console.log('[Setup] Starting final save...', { 
       fullName, 
@@ -331,13 +345,13 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
         <View style={styles.footer}>
           <Pressable 
             onPress={nextStep}
-            disabled={!isStepValid() || loading}
+            disabled={!isStepValid() || loading || isCheckingUsername}
             style={[
               styles.nextBtn,
-              (!isStepValid() || loading) && styles.nextBtnDisabled
+              (!isStepValid() || loading || isCheckingUsername) && styles.nextBtnDisabled
             ]}
           >
-            {loading ? (
+            {(loading || isCheckingUsername) ? (
               <ActivityIndicator color={theme.colors.nearBlack} />
             ) : (
               <AppText variant="title" weight="bold" color={theme.colors.nearBlack}>
@@ -373,9 +387,14 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
                     <AppText variant="bodySmall" color={theme.colors.placeholder} style={styles.subtitle}>Let's personalize your athlete profile.</AppText>
                   </View>
                   {renderInput("FULL NAME", fullName, setFullName, "John Doe", "name", {
+                    maxLength: 50,
                     onFocus: () => { setFocusedField('name'); step0ScrollRef.current?.scrollTo({ y: 0, animated: true }); }
                   })}
-                  {renderInput("USERNAME", username, setUsername, "@username", "user", { autoCapitalize: 'none', onFocus: () => { setFocusedField('user'); setTimeout(() => { step0ScrollRef.current?.scrollTo({ y: 80, animated: true }); }, 100); }})}
+                  {renderInput("USERNAME", username, setUsername, "@username", "user", { 
+                    autoCapitalize: 'none', 
+                    maxLength: 15,
+                    onFocus: () => { setFocusedField('user'); setTimeout(() => { step0ScrollRef.current?.scrollTo({ y: 80, animated: true }); }, 100); }
+                  })}
                 </ScrollView>
               </View>
 
@@ -471,7 +490,7 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
                       style={[
                         styles.coachCard,
                         { backgroundColor: cardBg },
-                        isActive && { borderColor: theme.colors.nearBlack, borderWidth: 3 }
+                        isActive && { borderActiveColor: theme.colors.nearBlack, borderWidth: 3 }
                       ]}
                     >
                       <View style={styles.coachCardMain}>
@@ -998,5 +1017,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  footer: { width: '100%', paddingHorizontal: theme.spacing.lg, paddingBottom: 20 },
+  nextBtn: {
+    backgroundColor: theme.colors.primary,
+    height: 64,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  nextBtnDisabled: { backgroundColor: 'rgba(255,255,255,0.05)', shadowOpacity: 0, elevation: 0 },
 });
 

@@ -6,10 +6,6 @@ export const routes = {
   signInAs: 'SignInAs',
   login: 'Login',
   signUp: 'SignUp',
-  main: 'Main',
-  roleSelection: 'RoleSelection',
-  roleSuccess: 'RoleSuccess',
-  coachDashboard: 'CoachDashboard',
   home: 'Home',
   analysis: 'Analysis',
   videoUpload: 'VideoUpload',
@@ -18,24 +14,26 @@ export const routes = {
   tests: 'Tests',
   notifications: 'Notifications',
   profile: 'Profile',
-  training: 'Training',
-  recordAndUpload: 'RecordAndUpload',
   settings: 'Settings',
   more: 'More',
+  roleSelection: 'RoleSelection',
+  roleSuccess: 'RoleSuccess',
   profileSetup: 'ProfileSetup',
-  athleteCoach: 'AthleteCoach',
-  chat: 'Chat',
-  coachReview: 'CoachReview',
-  athletePerformanceReport: 'AthletePerformanceReport',
   coachSetup: 'CoachSetup',
-  coachHome: 'CoachHome',
-  coachInbox: 'CoachInbox',
+  coachDashboard: 'Home', // Aliased to Home for Coach Stack
   coachAthletes: 'CoachAthletes',
-  coachReports: 'CoachReports',
+  coachInbox: 'CoachInbox',
+  coachReview: 'CoachReview',
   coachProfile: 'CoachProfile',
   coachEditProfile: 'CoachEditProfile',
+  chat: 'Chat',
+  coachList: 'RoleSelection', // Redirect back if list needed
+  recordAndUpload: 'RecordAndUpload',
+  main: 'Main',
+  training: 'Training',
+  athleteCoach: 'AthleteCoach',
+  coachReports: 'CoachReports',
 } as const;
-
 
 export const placeholderRouteContent: Record<string, PlaceholderContent> = {
   [routes.tests]: {

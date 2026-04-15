@@ -56,25 +56,31 @@ export const messagingService = {
   },
 
   /**
-   * Subscribes to real-time message updates
+   * Subscribes to real-time message updates for a specific conversation
    */
-  subscribeToMessages(targetUserId: string, onNewMessage: (msg: Message) => void) {
+  subscribeToMessages(currentUserId: string, targetUserId: string, onNewMessage: (msg: Message) => void) {
+    // Generate a consistent channel name for this specific pair of users
+    const roomId = [currentUserId, targetUserId].sort().join('_');
+    
     return supabase
-      .channel('public:messages')
+      .channel(`chat:${roomId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
+          // Optionally add filter if your Supabase project supports it for performance:
+          // filter: `sender_id=in.(${currentUserId},${targetUserId})`
         },
         (payload) => {
           const newMsg = payload.new as Message;
-          // Only trigger if it belongs to this conversation
-          if (
-            (newMsg.sender_id === targetUserId) ||
-            (newMsg.receiver_id === targetUserId)
-          ) {
+          // Security/Context check: only fire if this message is part of the conversation
+          const isParticipant = 
+            (newMsg.sender_id === currentUserId && newMsg.receiver_id === targetUserId) ||
+            (newMsg.sender_id === targetUserId && newMsg.receiver_id === currentUserId);
+
+          if (isParticipant) {
             onNewMessage(newMsg);
           }
         }

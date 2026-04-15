@@ -8,6 +8,7 @@ import { theme } from '@/theme';
 import { RootStackParamList } from '@/types/navigation';
 import { routes } from '@/constants/routes';
 import { useAuth } from '@/contexts/AuthContext';
+import { validation } from '@/utils/validation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CoachSetup'>;
 
@@ -38,20 +39,30 @@ export function CoachSetupScreen({ navigation }: Props) {
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>(profile?.specialties || []);
   const [expertiseLevel, setExpertiseLevel] = useState(profile?.expertise_level || 'Certified');
   const [bio, setBio] = useState(profile?.bio || '');
+  const [location, setLocation] = useState(profile?.location || '');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
   const totalSteps = 3;
 
-  const validateStep = (currentStep: number) => {
+  const validateStep = async (currentStep: number) => {
     const newErrors: Record<string, string> = {};
     
     if (currentStep === 0) {
-      if (!fullName.trim()) newErrors.fullName = 'Full name is required';
-      if (!username.trim()) {
-        newErrors.username = 'Username is required';
-      } else if (!/^[a-zA-Z0-9_]{3,20}$/.test(username.trim())) {
-        newErrors.username = '3-20 characters, alphanumeric and underscores only';
+      if (!validation.fullName(fullName)) {
+        newErrors.fullName = 'Please enter a valid name (2-50 letters)';
+      }
+      
+      if (!validation.username(username)) {
+        newErrors.username = '3-15 characters, alphanumeric and underscores only';
+      } else {
+        setIsCheckingUsername(true);
+        const available = await validation.isUsernameAvailable(username, profile?.id);
+        setIsCheckingUsername(false);
+        if (!available) {
+          newErrors.username = 'Username is already taken';
+        }
       }
     } else if (currentStep === 1) {
       if (selectedSpecialties.length === 0) {
@@ -61,6 +72,8 @@ export function CoachSetupScreen({ navigation }: Props) {
     } else if (currentStep === 2) {
       if (bio.trim().length < 20) {
         newErrors.bio = 'Bio must be at least 20 characters for a professional profile';
+      } else if (bio.trim().length > 500) {
+        newErrors.bio = 'Bio is too long (max 500 characters)';
       }
     }
 
@@ -68,9 +81,10 @@ export function CoachSetupScreen({ navigation }: Props) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     Keyboard.dismiss();
-    if (!validateStep(step)) return;
+    const isValid = await validateStep(step);
+    if (!isValid) return;
 
     if (step < totalSteps - 1) {
       Animated.timing(slideAnim, {
@@ -96,7 +110,8 @@ export function CoachSetupScreen({ navigation }: Props) {
 
   const handleFinalSave = async () => {
     Keyboard.dismiss();
-    if (!validateStep(step)) return;
+    const isValid = await validateStep(step);
+    if (!isValid) return;
 
     setLoading(true);
     try {
@@ -106,15 +121,13 @@ export function CoachSetupScreen({ navigation }: Props) {
         specialties: selectedSpecialties,
         expertise_level: expertiseLevel,
         bio: bio.trim(),
+        location: location.trim(),
       });
       
       if (error) throw error;
       
       await refreshProfile();
-      setLoading(false);
-      
-      // Navigate to Coach Home after successful setup
-      navigation.replace(routes.coachHome);
+      navigation.replace(routes.coachDashboard);
     } catch (e: any) {
       console.error('[CoachSetup] Save error:', e);
       setLoading(false);
@@ -161,13 +174,13 @@ export function CoachSetupScreen({ navigation }: Props) {
         <View style={styles.footer}>
           <Pressable 
             onPress={nextStep}
-            disabled={!isStepValid() || loading}
+            disabled={!isStepValid() || loading || isCheckingUsername}
             style={[
               styles.nextBtn,
-              (!isStepValid() || loading) && styles.nextBtnDisabled
+              (!isStepValid() || loading || isCheckingUsername) && styles.nextBtnDisabled
             ]}
           >
-            {loading ? (
+            {(loading || isCheckingUsername) ? (
               <ActivityIndicator color={theme.colors.textDark} />
             ) : (
               <AppText variant="title" weight="bold" color={theme.colors.textDark}>
@@ -212,6 +225,7 @@ export function CoachSetupScreen({ navigation }: Props) {
                     style={styles.input}
                     placeholder="Coach name"
                     placeholderTextColor="rgba(255,255,255,0.2)"
+                    maxLength={50}
                     value={fullName}
                     onChangeText={(t) => {
                       setFullName(t);
@@ -247,11 +261,31 @@ export function CoachSetupScreen({ navigation }: Props) {
                       });
                     }}
                     autoCapitalize="none"
+                    maxLength={15}
                     onFocus={() => setFocusedField('user')}
                     onBlur={() => setFocusedField(null)}
                   />
                 </View>
                 {errors.username && <AppText variant="tiny" color={theme.colors.error} style={styles.errorText}>{errors.username}</AppText>}
+              </View>
+
+              <View style={styles.inputGroup}>
+                <AppText variant="bodySmall" weight="bold" color={theme.colors.placeholder} style={styles.label}>PHYSICAL LOCATION</AppText>
+                <View style={[
+                  styles.inputContainer, 
+                  focusedField === 'loc' && styles.inputContainerFocused
+                ]}>
+                  <TextInput 
+                    style={styles.input}
+                    placeholder="e.g. Mumbai, India"
+                    placeholderTextColor="rgba(255,255,255,0.2)"
+                    maxLength={100}
+                    value={location}
+                    onChangeText={setLocation}
+                    onFocus={() => setFocusedField('loc')}
+                    onBlur={() => setFocusedField(null)}
+                  />
+                </View>
               </View>
             </ScrollView>
           </View>
@@ -316,6 +350,7 @@ export function CoachSetupScreen({ navigation }: Props) {
                     }}
                     multiline
                     numberOfLines={4}
+                    maxLength={500}
                     onFocus={() => setFocusedField('bio')}
                     onBlur={() => setFocusedField(null)}
                   />

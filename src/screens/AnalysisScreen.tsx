@@ -7,7 +7,6 @@ import { PerformanceChart } from '@/components/charts/PerformanceChart';
 import { AppShell } from '@/components/layout/AppShell';
 import { analysisCopy, analysisTabs, subroutineBreakdown } from '@/constants/content';
 import { theme } from '@/theme';
-import { AnalysisRange } from '@/types/app';
 import { RootStackParamList } from '@/types/navigation';
 import { historyService, Session } from '@/services/history';
 
@@ -36,7 +35,7 @@ export function AnalysisScreen(_: Props) {
       .sort((a, b) => {
         const timeA = new Date(a.date).getTime();
         const timeB = new Date(b.date).getTime();
-        if (timeA !== timeB) return timeA - timeB; // Oldest first
+        if (timeA !== timeB) return timeA - timeB; 
         return a.id.localeCompare(b.id);
       });
 
@@ -47,16 +46,15 @@ export function AnalysisScreen(_: Props) {
     const scores = filtered.map(s => (s as any).qualityScore || 0);
     const labels = filtered.map(s => {
       const d = new Date(s.date);
-      return `${d.getDate()}/${d.getMonth() + 1}`; // Simple DD/MM label
+      return `${d.getDate()}/${d.getMonth() + 1}`; 
     });
 
     return { chartUserSeries: scores, chartLabels: labels };
   }, [sessions, activeExercise]);
 
   return (
-    <AppShell footerMode='sticky'>
-      <View style={styles.screen}>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+    <AppShell scrollable hasTabBar={true}>
+      <View style={styles.container}>
         <View style={styles.header}>
           <AppText variant='heading' weight='semibold'>Performance Quality</AppText>
           <AppText variant='bodySmall' color={theme.colors.placeholder}>Comparing your movement quality against elite standards</AppText>
@@ -109,7 +107,6 @@ export function AnalysisScreen(_: Props) {
             ))}
           </View>
         </View>
-        </ScrollView>
       </View>
     </AppShell>
   );
@@ -124,11 +121,11 @@ const styles = StyleSheet.create({
   },
   container: {
     paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.layout.navHeight + theme.spacing.xxxl + theme.spacing.lg,
     gap: theme.spacing.lg,
   },
   header: {
     gap: 2,
+    marginTop: theme.spacing.sm,
   },
   heroCard: {
     borderRadius: theme.radii.largeCard,
@@ -185,30 +182,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
     gap: theme.spacing.xs,
   },
-  historySection: {
-    gap: theme.spacing.md,
-    marginTop: theme.spacing.sm,
-  },
-  historyList: {
-    gap: theme.spacing.sm,
-  },
-  historyItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: theme.radii.card,
-    padding: theme.spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  historyInfo: {
-    gap: 2,
-  },
-  scoreBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: theme.radii.pill,
-  },
 });
-

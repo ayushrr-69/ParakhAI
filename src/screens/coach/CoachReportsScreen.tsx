@@ -51,7 +51,7 @@ export function CoachReportsScreen() {
   const rest = leaderboard.slice(3);
 
   return (
-    <AppShell footerMode="hidden">
+    <AppShell hasTabBar={true}>
       <CoachHeader title="Team Analytics" />
 
       {/* Exercise tab bar — pill style matching AnalysisScreen exactly */}

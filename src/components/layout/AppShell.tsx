@@ -8,11 +8,12 @@ type AppShellProps = PropsWithChildren<{
   scrollable?: boolean;
   header?: ReactNode;
   footer?: ReactNode;
-  footerMode?: 'flow' | 'sticky' | 'hidden';
+  footerMode?: 'flow' | 'sticky';
   contentStyle?: StyleProp<ViewStyle>;
   edges?: ReadonlyArray<'top' | 'right' | 'bottom' | 'left'>;
   noPaddingTop?: boolean;
   refreshControl?: ReactNode;
+  hasTabBar?: boolean;
 }>;
 
 export function AppShell({
@@ -25,20 +26,29 @@ export function AppShell({
   edges = ['top', 'bottom'],
   noPaddingTop = false,
   refreshControl,
+  hasTabBar = false,
 }: AppShellProps) {
   const stickyFooter = Boolean(footer) && footerMode === 'sticky';
 
   const body = scrollable ? (
     <ScrollView
       style={styles.scrollView}
-      contentContainerStyle={[styles.scrollBody, stickyFooter ? styles.scrollBodyWithStickyFooter : undefined]}
+      contentContainerStyle={[
+        styles.scrollBody, 
+        stickyFooter ? styles.scrollBodyWithStickyFooter : undefined,
+        hasTabBar ? styles.scrollBodyWithTabBar : undefined
+      ]}
       showsVerticalScrollIndicator={false}
       refreshControl={refreshControl as any}
     >
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.body, stickyFooter ? styles.bodyWithStickyFooter : undefined]}>{children}</View>
+    <View style={[
+      styles.body, 
+      stickyFooter ? styles.bodyWithStickyFooter : undefined,
+      hasTabBar ? styles.bodyWithTabBar : undefined
+    ]}>{children}</View>
   );
 
   return (
@@ -97,6 +107,12 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   scrollBodyWithStickyFooter: {
+    paddingBottom: 120,
+  },
+  bodyWithTabBar: {
+    paddingBottom: 120,
+  },
+  scrollBodyWithTabBar: {
     paddingBottom: 120,
   },
   stickyFooterWrap: {

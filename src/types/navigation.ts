@@ -6,37 +6,49 @@ export type RootStackParamList = {
   SignInAs: undefined;
   Login: undefined;
   SignUp: undefined;
-  Main: undefined;
-  RoleSelection: undefined;
-  RoleSuccess: { role: 'athlete' | 'coach' };
-  CoachDashboard: undefined;
   Home: undefined;
   Analysis: undefined;
   VideoUpload: { exerciseType: 'pushups' | 'squats' | 'bicep_curls' };
   AnalysisResults: { 
-    results?: any; 
-    exerciseType: string; 
-    session?: any; 
-    videoPath?: string; 
+    results?: any;
+    session?: import('@/services/history').Session;
+    exerciseType: 'pushups' | 'squats' | 'bicep_curls';
     coachFeedback?: string;
     coachName?: string;
   };
   RealTimeAnalysis: { exerciseType: 'pushups' | 'squats' | 'bicep_curls' };
-  Tests: undefined;
+  Tests: { content: PlaceholderContent };
   Notifications: { content: PlaceholderContent };
-  Profile: undefined;
+  Profile: { content: PlaceholderContent };
   Settings: { content: PlaceholderContent };
   More: { content: PlaceholderContent };
-  Training: undefined;
-  RecordAndUpload: { exerciseType: 'pushups' | 'squats' | 'bicep_curls' };
+  RoleSelection: undefined;
+  RoleSuccess: { role: string };
   ProfileSetup: { mode?: 'setup' | 'edit' | 'changeCoach'; step?: number };
+  CoachSetup: undefined;
+  CoachHome: undefined;
+  Chat: { targetName: string; targetId: string } | { coachName: string; athleteId: string };
+  CoachAthletes: undefined;
+  CoachInbox: undefined;
+  CoachReview: { submissionId: string; athleteName: string; sessionData: any };
+  CoachProfile: undefined;
+  CoachEditProfile: undefined;
+  RecordAndUpload: { exerciseType: 'pushups' | 'squats' | 'bicep_curls' };
+  AthleteCoach: undefined;
+  Main: undefined;
+};
+
+export type AthleteTabParamList = {
+  Home: undefined;
+  Analysis: undefined;
+  AthleteCoach: undefined;
+  Tests: { content: PlaceholderContent };
+  Training: undefined;
+};
+
+export type CoachTabParamList = {
   CoachHome: undefined;
   CoachInbox: undefined;
   CoachAthletes: undefined;
   CoachReports: undefined;
-  CoachReview: { 
-    submissionId: string; 
-    athleteName: string; 
-    sessionData: any; 
-  };
 };

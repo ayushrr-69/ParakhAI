@@ -1,74 +1,31 @@
-import { useFocusEffect } from '@react-navigation/native';
-import { useMemo, useState, useCallback, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, RefreshControl, Image, Alert } from 'react-native';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { StyleSheet, View, ScrollView, Pressable, Image } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import Svg, { Circle, Path } from 'react-native-svg';
+import { useFocusEffect } from '@react-navigation/native';
+import Svg, { Path } from 'react-native-svg';
 import { AppText } from '@/components/common/AppText';
 import { AppShell } from '@/components/layout/AppShell';
 import { CalendarStrip } from '@/components/home/CalendarStrip';
-import { ActionBlockGrid } from '@/components/home/ActionBlockGrid';
-import { BottomNav } from '@/components/navigation/BottomNav';
 import { PerformanceSnap } from '@/components/home/PerformanceSnap';
-import { calendarDays, homeTestActions } from '@/constants/content';
+import { calendarDays } from '@/constants/content';
 import { theme } from '@/theme';
 import { RootStackParamList } from '@/types/navigation';
 import { routes } from '@/constants/routes';
-import { historyService, Session } from '@/services/history';
 import { useAuth } from '@/contexts/AuthContext';
-import { useData } from '@/contexts/DataContext';
-import { supabase } from '@/lib/supabase';
+import { historyService, Session } from '@/services/history';
+import { coachService } from '@/services/coach';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export function HomeScreen({ navigation }: Props) {
-  const { user, profile } = useAuth();
-  const { 
-    history, 
-    stats, 
-    teamAvg, 
-    refreshing, 
-    refreshAll, 
-    ensureDataLoaded 
-  } = useData();
-
-  const onRefresh = useCallback(async () => {
-    await refreshAll();
-  }, [refreshAll]);
-
-  useFocusEffect(
-    useCallback(() => {
-      ensureDataLoaded();
-    }, [ensureDataLoaded])
-  );
-
-  // Real-time listener for coach feedback
-  useEffect(() => {
-    if (!profile?.id) return;
-
-    const channel = supabase.channel(`athlete-feedback-${profile.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'coach_feedback',
-          filter: `athlete_id=eq.${profile.id}`
-        },
-        (payload) => {
-          console.log('[Home] New feedback received!', payload);
-          Alert.alert("New Feedback", "Your coach has reviewed your session!");
-          refreshAll();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, [profile?.id, refreshAll]);
+  const { profile } = useAuth();
+  const [history, setHistory] = useState<Session[]>([]);
+  const [stats, setStats] = useState({ score: 0, trend: 0, sparkline: [] as number[] });
+  const [teamAvg, setTeamAvg] = useState(0);
 
   const initialDay = calendarDays.find((item) => item.isSelected)?.key ?? calendarDays[0]?.key ?? 'thu';
   const [selectedDayKey, setSelectedDayKey] = useState(initialDay);
+  
   const visibleDays = useMemo(
     () =>
       calendarDays.map((item) => ({
@@ -78,30 +35,73 @@ export function HomeScreen({ navigation }: Props) {
     [selectedDayKey],
   );
 
-  return (
-    <AppShell 
-      scrollable 
-      footerMode='sticky'
-      refreshControl={
-        <RefreshControl 
-          refreshing={refreshing} 
-          onRefresh={onRefresh} 
-          tintColor={theme.colors.primary} 
-          colors={[theme.colors.primary]}
-        />
+  const calculateQuickStats = (sessions: Session[]) => {
+    if (!sessions || sessions.length === 0) {
+      return { score: 0, trend: 0, sparkline: [] };
+    }
+
+    // Sort by date descending
+    const sorted = [...sessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    // Latest score
+    const currentScore = sorted[0].qualityScore || 0;
+    
+    // Trend (vs previous session)
+    let trendValue = 0;
+    if (sorted.length > 1) {
+      const prevScore = sorted[1].qualityScore || 0;
+      trendValue = currentScore - prevScore;
+    }
+
+    // Sparkline (last 7 sessions in chronological order for chart)
+    const last7 = sorted.slice(0, 7).reverse().map(s => s.qualityScore || 0);
+
+    return {
+      score: Math.round(currentScore),
+      trend: Math.round(trendValue),
+      sparkline: last7,
+    };
+  };
+
+  const loadData = async () => {
+    try {
+      // 1. Load History
+      const historyData = await historyService.getHistory();
+      setHistory(historyData);
+
+      // 2. Calculate local stats
+      const localStats = calculateQuickStats(historyData);
+      setStats(localStats);
+
+      // 3. Load team average if enrolled with a coach
+      if (profile?.coach_id) {
+        const avg = await coachService.getTeamAverage(profile.coach_id);
+        setTeamAvg(avg);
       }
-    >
+    } catch (e) {
+      console.error('[HomeScreen] Data load error:', e);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [profile?.coach_id])
+  );
+
+  return (
+    <AppShell scrollable hasTabBar={true}>
       <View style={styles.container}>
         <View style={styles.headerRow}>
           <View>
-            <AppText variant='bodyLarge' color={theme.colors.placeholder}>Welcome back</AppText>
-            <AppText variant='heading' weight='semibold'>{profile?.full_name || 'Athlete'}</AppText>
+            <AppText variant="heading" weight="semibold">Athlete HQ</AppText>
+            <AppText variant="bodySmall" color={theme.colors.placeholder}>Welcome back, {profile?.full_name?.split(' ')[0] || 'Player'}</AppText>
           </View>
           <View style={styles.headerActions}>
             <Pressable onPress={() => navigation.navigate(routes.profile as any)}>
-              {user?.user_metadata?.avatar_url || user?.user_metadata?.picture ? (
+              {profile?.avatar_url ? (
                 <Image 
-                  source={{ uri: user?.user_metadata?.avatar_url || user?.user_metadata?.picture }} 
+                  source={{ uri: profile.avatar_url }} 
                   style={styles.avatar} 
                 />
               ) : (
@@ -220,7 +220,6 @@ export function HomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: theme.spacing.lg,
-    paddingBottom: 150, // Global buffer to clear the floating bottom nav
     gap: theme.spacing.lg,
   },
   headerRow: {
@@ -291,7 +290,6 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
     borderRadius: theme.radii.card,
     gap: theme.spacing.md,
-    // Solid color, premium look
   },
   activityIcon: {
     width: 36,
@@ -305,7 +303,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: theme.radii.pill,
   },
-  emptyFeed: {
+  emptyState: {
     padding: theme.spacing.lg,
     paddingTop: theme.spacing.xl,
     alignItems: 'center',
@@ -316,7 +314,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: theme.radii.pill,
-    elevation: 4, // Make it pop
+    elevation: 4, 
     shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,

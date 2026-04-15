@@ -10,11 +10,7 @@ import { RootStackParamList } from '@/types/navigation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
-export function SplashScreen({ navigation }: Props) {
-  useEffect(() => {
-    const timeoutId = setTimeout(() => navigation.replace(routes.onboarding), 1600);
-    return () => clearTimeout(timeoutId);
-  }, [navigation]);
+export function SplashScreen() {
 
   return (
     <AppShell>
