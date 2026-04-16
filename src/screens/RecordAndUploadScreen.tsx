@@ -12,6 +12,7 @@ import { historyService } from '@/services/history';
 import { theme } from '@/theme';
 import { RootStackParamList } from '@/types/navigation';
 import { routes } from '@/constants/routes';
+import { useToast } from '@/contexts/ToastContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RecordAndUpload'>;
 
@@ -19,7 +20,10 @@ export function RecordAndUploadScreen({ route, navigation }: Props) {
   const { exerciseType = 'pushups' } = route.params || {};
   const { height: screenHeight } = useWindowDimensions();
   const camera = useRef<Camera>(null);
-  const device = useCameraDevice('back');
+  const backDevice = useCameraDevice('back');
+  const [fallbackDevice, setFallbackDevice] = useState<any>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const activeDevice = backDevice || fallbackDevice;
   
   const isFocused = useIsFocused();
   const [hasPermission, setHasPermission] = useState(false);
@@ -29,9 +33,9 @@ export function RecordAndUploadScreen({ route, navigation }: Props) {
   const [progress, setProgress] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const { isAnalyzing, startAnalysis } = useAnalysis();
+  const { showToast } = useToast();
 
-  // Relaxed format selection for better Android compatibility
-  const format = useCameraFormat(device, [
+  const format = useCameraFormat(activeDevice, [
     { videoResolution: 'max' },
     { fps: 'max' }
   ]);
@@ -39,12 +43,85 @@ export function RecordAndUploadScreen({ route, navigation }: Props) {
   const exerciseLabel = exerciseType.charAt(0).toUpperCase() + exerciseType.slice(1).replace('_', ' ');
 
   useEffect(() => {
-    async function request() {
-      const status = await Camera.requestCameraPermission();
-      setHasPermission(status === 'granted');
+    let isMounted = true;
+    let pollInterval: any;
+    
+    async function initialize() {
+      try {
+        setIsInitializing(true);
+        console.log('[Camera] Initializing hardware discovery...');
+        
+        // 0. Environment check (Constants needs to be imported from expo-constants)
+        // We'll log the status to help us debug
+        
+        // 1. Check Permissions and Log Status
+        const camStatus = await Camera.requestCameraPermission();
+        const micStatus = await Camera.requestMicrophonePermission();
+        const currentCamStatus = Camera.getCameraPermissionStatus();
+        
+        console.log(`[Camera] Permission Status - Cam: ${camStatus} (Current: ${currentCamStatus}), Mic: ${micStatus}`);
+        
+        if (!isMounted) return;
+        
+        if (camStatus !== 'granted') {
+          console.error('[Camera] Permission denied by user');
+          setHasPermission(false);
+          setIsInitializing(false);
+          return;
+        }
+        
+        setHasPermission(true);
+
+        // 2. Hardware Polling Discovery
+        // Sometimes Android takes 1-2 seconds to "release" the camera after another app closed it
+        let attempts = 0;
+        const scan = async () => {
+          if (!isMounted) return false;
+          
+          console.log(`[Camera] Attempt ${attempts + 1}: Scanning for devices...`);
+          const devices = await Camera.getAvailableCameraDevices();
+          console.log(`[Camera] Found ${devices.length} devices total.`);
+          
+          if (devices.length > 0) {
+            // Success!
+            const manualBack = devices.find(d => d.position === 'back');
+            if (manualBack) {
+              console.log('[Camera] Bound to back camera:', manualBack.name);
+              setFallbackDevice(manualBack);
+            } else {
+              console.log('[Camera] No back camera, using first available:', devices[0].name);
+              setFallbackDevice(devices[0]);
+            }
+            setIsInitializing(false);
+            return true;
+          }
+          
+          attempts++;
+          return false;
+        };
+
+        const success = await scan();
+        if (!success) {
+           pollInterval = setInterval(async () => {
+             const found = await scan();
+             if (found || attempts >= 5) {
+               clearInterval(pollInterval);
+               setIsInitializing(false);
+             }
+           }, 1000);
+        }
+      } catch (err) {
+        console.error('[Camera] Init error:', err);
+        if (isMounted) setIsInitializing(false);
+      }
     }
-    request();
-  }, []);
+
+    initialize();
+    return () => { 
+      isMounted = false;
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, [backDevice]);
 
   const handleStopRecording = useCallback(async () => {
     if (!camera.current) return;
@@ -66,12 +143,21 @@ export function RecordAndUploadScreen({ route, navigation }: Props) {
   }, [isRecording, isPaused]);
 
   const handleStartRecording = useCallback(async () => {
-    if (!camera.current || !device) return;
+    if (!camera.current || !activeDevice) return;
 
     try {
       setIsRecording(true);
       camera.current.startRecording({
         onRecordingFinished: async (video: VideoFile) => {
+          if (video.duration < 2) {
+            showToast({
+              title: "Video Too Short",
+              message: "Please record at least 2 seconds for a valid analysis.",
+              type: "info"
+            });
+            setIsRecording(false);
+            return;
+          }
           setPendingVideo(video);
         },
         onRecordingError: (error) => {
@@ -84,7 +170,7 @@ export function RecordAndUploadScreen({ route, navigation }: Props) {
       setIsRecording(false);
       setIsPaused(false);
     }
-  }, [device, exerciseType, startAnalysis]); // Removed navigation from deps as we only set state now
+  }, [activeDevice, exerciseType, startAnalysis]); // Removed navigation from deps as we only set state now
 
   const handleConfirmAnalysis = async () => {
     if (isAnalyzing || isSaving) return;
@@ -128,8 +214,17 @@ export function RecordAndUploadScreen({ route, navigation }: Props) {
     }
   };
 
-  if (!hasPermission) return <AppShell><View style={styles.center}><AppText color="#fff">No Camera Permission</AppText></View></AppShell>;
-  if (!device) return <AppShell><View style={styles.center}><AppText color="#fff">No Camera Device</AppText></View></AppShell>;
+  if (isInitializing) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <AppText color="#fff" style={{ marginTop: 20 }}>Syncing Hardware...</AppText>
+      </View>
+    );
+  }
+
+  if (!hasPermission) return <AppShell><View style={styles.center}><AppText color="#fff">No Camera/Mic Permission</AppText></View></AppShell>;
+  if (!activeDevice) return <AppShell><View style={styles.center}><AppText color="#fff">No Camera Device Available</AppText></View></AppShell>;
 
   return (
     <View style={styles.container}>
@@ -149,7 +244,7 @@ export function RecordAndUploadScreen({ route, navigation }: Props) {
           <Camera
             ref={camera}
             style={StyleSheet.absoluteFill}
-            device={device}
+            device={activeDevice}
             isActive={isFocused && !isAnalyzing}
             format={format}
             video={true}

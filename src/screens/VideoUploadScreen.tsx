@@ -15,6 +15,8 @@ import { routes } from '@/constants/routes';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'VideoUpload'>;
 
+import { useToast } from '@/contexts/ToastContext';
+
 export function VideoUploadScreen({ route, navigation }: Props) {
   const { exerciseType } = route.params;
   const { height: screenHeight } = useWindowDimensions();
@@ -25,6 +27,7 @@ export function VideoUploadScreen({ route, navigation }: Props) {
   const [glContext, setGlContext] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const { isAnalyzing, startAnalysis, error } = useAnalysis();
+  const { showToast } = useToast();
 
   const exerciseLabel = exerciseType.charAt(0).toUpperCase() + exerciseType.slice(1).replace('_', ' ');
   const uploadBoxHeight = Math.max(160, Math.min(220, Math.round(screenHeight * 0.22)));
@@ -37,16 +40,31 @@ export function VideoUploadScreen({ route, navigation }: Props) {
     });
 
     if (!result.canceled) {
+      const duration = result.assets[0].duration ? result.assets[0].duration / 1000 : 0;
+      
+      if (duration < 2) {
+        showToast({
+          title: "Video Too Short",
+          message: "Please select a video that is at least 2 seconds long.",
+          type: "info"
+        });
+        return;
+      }
+
       setVideoUri(result.assets[0].uri);
       setVideoName(result.assets[0].fileName || result.assets[0].uri.split('/').pop() || 'Selected video');
-      setVideoDuration(result.assets[0].duration ? result.assets[0].duration / 1000 : null);
+      setVideoDuration(duration);
     }
   };
 
   const handleAnalysis = async () => {
     if (isAnalyzing || isSaving) return;
     if (!videoUri || !videoDuration) {
-      Alert.alert('No video selected', 'Please select a video from your gallery first.');
+      showToast({
+        title: 'No video selected',
+        message: 'Please select a video from your gallery first.',
+        type: 'info'
+      });
       return;
     }
 
@@ -83,7 +101,11 @@ export function VideoUploadScreen({ route, navigation }: Props) {
       });
     } catch (err: any) {
       setIsSaving(false);
-      Alert.alert('Analysis Failed', err.message || 'Something went wrong');
+      showToast({
+        title: 'Analysis Failed',
+        message: err.message || 'Something went wrong',
+        type: 'error'
+      });
     }
   };
 

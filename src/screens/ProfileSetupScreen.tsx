@@ -9,6 +9,7 @@ import { theme } from '@/theme';
 import { RootStackParamList } from '@/types/navigation';
 import { routes } from '@/constants/routes';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 import { coachService } from '@/services/coach';
 import { validation } from '@/utils/validation';
 
@@ -64,12 +65,14 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
   const [introMessage, setIntroMessage] = useState('');
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { showToast } = useToast();
 
   const validateStep = async (currentStep: number) => {
     const newErrors: Record<string, string> = {};
     
-    if (mode === 'setup') {
-      if (currentStep === 1) { // Identity step
+    if (mode === 'setup' || mode === 'edit') {
+      if (currentStep === 0) { // Identity step
         if (!validation.fullName(fullName)) {
           newErrors.fullName = 'Please enter a valid name (2-50 letters)';
         }
@@ -86,17 +89,25 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
             newErrors.username = 'Username is already taken';
           }
         }
-      } else if (currentStep === 3) { // Metrics step
+      } else if (currentStep === 1) { // Metrics step
         const isWeightValid = validation.metric(weight, units === 'metric' ? 30 : 66, units === 'metric' ? 300 : 660);
         const isHeightValid = validation.metric(height, units === 'metric' ? 100 : 40, units === 'metric' ? 250 : 100);
 
         if (!isWeightValid) newErrors.weight = `Weight must be ${units === 'metric' ? '30-300 kg' : '66-660 lbs'}`;
         if (!isHeightValid) newErrors.height = `Height must be ${units === 'metric' ? '100-250 cm' : '40-100 in'}`;
+      } else if (currentStep === 2) { // Sports step
+        if (selectedSports.length === 0) {
+          showToast({ title: 'Selection required', message: 'Pick at least one sport to proceed.', type: 'info' });
+          newErrors.sports = 'required';
+        }
+      } else if (currentStep === 3) { // Goals step
+        if (selectedGoals.length === 0) {
+          showToast({ title: 'Goals required', message: 'Set at least one goal focus.', type: 'info' });
+          newErrors.goals = 'required';
+        }
       }
     } else if (mode === 'changeCoach') {
       // No extra text fields yet
-    } else if (mode === 'edit') {
-       // Similar validation logic could be applied here if needed
     }
 
     setErrors(newErrors);
@@ -106,6 +117,45 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
   const slideAnim = useRef(new Animated.Value(0)).current;
   const step0ScrollRef = useRef<ScrollView>(null);
   const step1ScrollRef = useRef<ScrollView>(null);
+
+  // REAL-TIME USERNAME VALIDATION
+  useEffect(() => {
+    if (step !== 0 || !username || username.length < 4) {
+      if (errors.user && username.length < 4) {
+         setErrors(prev => {
+           const { user, ...rest } = prev;
+           return rest;
+         });
+      }
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      if (!validation.username(username)) {
+        setErrors(prev => ({ ...prev, user: 'Invalid username format' }));
+        return;
+      }
+
+      setIsCheckingUsername(true);
+      try {
+        const available = await validation.isUsernameAvailable(username, profile?.id);
+        if (!available) {
+          setErrors(prev => ({ ...prev, user: 'Username is already taken' }));
+        } else {
+          setErrors(prev => {
+            const { user, ...rest } = prev;
+            return rest;
+          });
+        }
+      } catch (err) {
+        console.error('Username check failed:', err);
+      } finally {
+        setIsCheckingUsername(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [username, step]);
   const totalSteps = mode === 'edit' ? 4 : (mode === 'changeCoach' ? 1 : 5);
 
   useEffect(() => {
@@ -234,10 +284,11 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
         
         if (!requestSuccess) {
           console.warn('[Setup] Enrollment request failed during registration flow');
-          Alert.alert(
-            "Enrollment Note", 
-            "Profile saved, but we couldn't send the request to your coach. You can try again from the coach connect tab."
-          );
+          showToast({
+            title: "Enrollment Note", 
+            message: "Profile saved, but we couldn't send the request to your coach. Try again later.",
+            type: "info"
+          });
         } else {
           console.log('[Setup] Enrollment request sent successfully');
         }
@@ -246,16 +297,22 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
       console.log('[Setup] Save successful!');
       if (mode === 'changeCoach') {
         navigation.navigate('Main', { screen: routes.tests } as any); // Redirect to coach connect tab 
-      } else {
+      } else if (mode === 'edit') {
         await refreshProfile();
         navigation.goBack();
+      } else {
+        await refreshProfile();
       }
       setLoading(false);
     } catch (e: any) {
       console.error('[Setup] Catch error:', e);
       setLoading(false);
       const errorMsg = e.message || "An unexpected error occurred. Please try again.";
-      Alert.alert("Setup Error", errorMsg);
+      showToast({
+        title: "Setup Error",
+        message: errorMsg,
+        type: "error"
+      });
     }
   };
 
@@ -270,10 +327,12 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
   const isStepValid = () => {
     if (mode === 'changeCoach') return !!selectedCoach;
     
-    if (step === 0) return true; // Intro step
-    if (step === 1) return fullName.trim().length > 2 && username.trim().length > 3;
+    // Slide index mapping:
+    // 0: Identity, 1: Metrics, 2: Sports, 3: Goals, 4: Coach
+    if (step === 0) return fullName.trim().length > 2 && username.trim().length > 3 && !errors.user;
+    if (step === 1) return weight.length > 0 && height.length > 0 && !errors.weight && !errors.height;
     if (step === 2) return selectedSports.length > 0;
-    if (step === 3) return weight.length > 0 && height.length > 0;
+    if (step === 3) return selectedGoals.length > 0;
     if (step === 4) return !!selectedCoach;
     return true;
   };
@@ -294,11 +353,18 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
     </View>
   );
 
-  const renderInput = (label: string, value: string, onChange: (t: string) => void, placeholder: string, fieldId: string, props: any = {}) => {
+  const renderInput = (label: string, value: string, onChange: (t: string) => void, placeholder: string, fieldId: string, props: any = {}, hint?: string) => {
     const error = errors[fieldId];
+    const isUserField = fieldId === 'user';
+    
     return (
       <View style={styles.inputGroup}>
-        <AppText variant="bodySmall" weight="bold" color={error ? theme.colors.error : theme.colors.placeholder} style={styles.label}>{label}</AppText>
+        <View style={styles.labelRow}>
+          <AppText variant="bodySmall" weight="bold" color={error ? theme.colors.error : theme.colors.placeholder} style={styles.label}>{label}</AppText>
+          {isUserField && isCheckingUsername && (
+            <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginLeft: 8 }} />
+          )}
+        </View>
         <View style={[
           styles.inputContainer,
           focusedField === fieldId && styles.inputContainerFocused,
@@ -330,9 +396,11 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
             {...props}
           />
         </View>
-        {error && (
+        {error ? (
           <AppText variant="tiny" color={theme.colors.error} style={styles.errorText}>{error}</AppText>
-        )}
+        ) : hint ? (
+          <AppText variant="tiny" color={theme.colors.placeholder} style={styles.hintText}>{hint}</AppText>
+        ) : null}
       </View>
     );
   };
@@ -390,7 +458,7 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
                     maxLength: 50,
                     onFocus: () => { setFocusedField('name'); step0ScrollRef.current?.scrollTo({ y: 0, animated: true }); }
                   })}
-                  {renderInput("USERNAME", username, setUsername, "@username", "user", { 
+                  {renderInput("USERNAME", username, (t) => setUsername(t.toLowerCase()), "@username", "user", { 
                     autoCapitalize: 'none', 
                     maxLength: 15,
                     onFocus: () => { setFocusedField('user'); setTimeout(() => { step0ScrollRef.current?.scrollTo({ y: 80, animated: true }); }, 100); }
@@ -413,8 +481,8 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
                     </Pressable>
                   </View>
                   <View style={styles.metricsRow}>
-                    <View style={{ flex: 1 }}>{renderInput(`WEIGHT (${units === 'metric' ? 'KG' : 'LBS'})`, weight, setWeight, "00", "weight", { keyboardType: 'numeric', onFocus: () => { setFocusedField('weight'); setTimeout(() => { step1ScrollRef.current?.scrollTo({ y: 120, animated: true }); }, 100); } })}</View>
-                    <View style={{ width: 16 }} /><View style={{ flex: 1 }}>{renderInput(`HEIGHT (${units === 'metric' ? 'CM' : 'IN'})`, height, setHeight, "00", "height", { keyboardType: 'numeric', onFocus: () => { setFocusedField('height'); setTimeout(() => { step1ScrollRef.current?.scrollTo({ y: 120, animated: true }); }, 100); } })}</View>
+                    <View style={{ flex: 1 }}>{renderInput(`WEIGHT (${units === 'metric' ? 'KG' : 'LBS'})`, weight, setWeight, "00", "weight", { keyboardType: 'numeric', onFocus: () => { setFocusedField('weight'); setTimeout(() => { step1ScrollRef.current?.scrollTo({ y: 120, animated: true }); }, 100); } }, units === 'metric' ? "Range: 30 - 300 kg" : "Range: 66 - 660 lbs")}</View>
+                    <View style={{ width: 16 }} /><View style={{ flex: 1 }}>{renderInput(`HEIGHT (${units === 'metric' ? 'CM' : 'IN'})`, height, setHeight, "00", "height", { keyboardType: 'numeric', onFocus: () => { setFocusedField('height'); setTimeout(() => { step1ScrollRef.current?.scrollTo({ y: 120, animated: true }); }, 100); } }, units === 'metric' ? "Range: 100 - 250 cm" : "Range: 40 - 100 in")}</View>
                   </View>
                 </ScrollView>
               </View>
@@ -459,9 +527,16 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
                 {locationLoading ? (
                   <ActivityIndicator size="small" color={theme.colors.primary} />
                 ) : (
-                  <AppText variant="tiny" weight="bold" color={theme.colors.primary}>
-                    NEAR {locationName?.toUpperCase() || 'YOUR LOCATION'}
-                  </AppText>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <AppText variant="tiny" weight="bold" color={theme.colors.primary}>
+                      NEAR {locationName?.toUpperCase() || 'YOUR LOCATION'}
+                    </AppText>
+                    <Pressable onPress={() => detectLocation()} style={styles.refreshBtn}>
+                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+                        <Path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke={theme.colors.primary} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+                      </Svg>
+                    </Pressable>
+                  </View>
                 )}
               </View>
               <AppText variant="bodySmall" color={theme.colors.placeholder} style={styles.subtitle}>
@@ -748,6 +823,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   inputGroup: { marginBottom: 24, gap: 10 },
+  labelRow: { flexDirection: 'row', alignItems: 'center' },
   label: { letterSpacing: 1.5, marginLeft: 4 },
   inputContainer: {
     backgroundColor: 'rgba(255,255,255,0.04)',
@@ -984,6 +1060,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
+    gap: 8,
+  },
+  refreshBtn: {
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalSection: {
     gap: 12,

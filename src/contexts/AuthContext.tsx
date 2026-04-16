@@ -4,6 +4,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { historyService } from '@/services/history';
+import { useToast } from './ToastContext';
 
 export interface UserProfile {
   id: string;
@@ -43,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const { setIsOffline } = useToast();
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -52,12 +54,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', userId)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 is 'no rows found'
-        console.error('Error fetching profile:', error);
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No profile found - not a network error
+          setProfile(null);
+        } else if (error.message?.includes('FetchError') || error.message?.includes('network')) {
+          console.warn('[Auth] Offline detected');
+          setIsOffline(true);
+        } else {
+          console.error('Error fetching profile:', error);
+        }
+      } else {
+        setIsOffline(false);
+        setProfile(data || null);
       }
-
-      setProfile(data || null);
-    } catch (err) {
+    } catch (err: any) {
+      if (err.message?.includes('Network request failed') || err.message?.includes('fetch')) {
+        setIsOffline(true);
+      }
       console.error('Unexpected error fetching profile:', err);
     }
   };
@@ -147,6 +161,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      // Set loading true immediately to prevent UI from switching stacks
+      // until profile data is also ready
+      if (_event === 'SIGNED_IN' || _event === 'TOKEN_REFRESHED' || _event === 'USER_UPDATED') {
+        setLoading(true);
+      }
+      
       setSession(session);
       setUser(session?.user ?? null);
       

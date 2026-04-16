@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, Pressable } from 'react-native';
 import { Camera, useCameraDevice, useFrameProcessor, useCameraFormat } from 'react-native-vision-camera';
 import { useTensorflowModel } from 'react-native-fast-tflite';
@@ -10,12 +10,17 @@ import { BackButton } from '@/components/common/BackButton';
 import { historyService } from '@/services/history';
 import { theme } from '@/theme';
 import { RootStackParamList } from '@/types/navigation';
+import { useToast } from '@/contexts/ToastContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RealTimeAnalysis'>;
 
 export function RealTimeAnalysisScreen({ route, navigation }: Props) {
   const { exerciseType } = route.params;
-  const device = useCameraDevice('back');
+  const backDevice = useCameraDevice('back');
+  const [fallbackDevice, setFallbackDevice] = useState<any>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const activeDevice = backDevice || fallbackDevice;
+
   const [hasPermission, setHasPermission] = useState(false);
   
   const [displayReps, setDisplayReps] = useState(0);
@@ -23,9 +28,11 @@ export function RealTimeAnalysisScreen({ route, navigation }: Props) {
   const [displayBad, setDisplayBad] = useState(0);
   const [isReady, setIsReady] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
+  const sessionStartTime = useRef<number>(Date.now());
+  const { showToast } = useToast();
 
   // Optimized Format: Target 720p (1280x720) for consistent performance
-  const format = useCameraFormat(device, [
+  const format = useCameraFormat(activeDevice, [
     { videoResolution: { width: 1280, height: 720 } },
     { fps: 30 }
   ]);
@@ -62,14 +69,52 @@ export function RealTimeAnalysisScreen({ route, navigation }: Props) {
   });
 
   useEffect(() => {
-    async function requestPermission() {
-      const status = await Camera.requestCameraPermission();
-      setHasPermission(status === 'granted');
-      // Adding a 500ms delay to ensure everything is settled before camera mounts
-      setTimeout(() => setIsReady(true), 500);
+    let isMounted = true;
+    
+    async function initialize() {
+      try {
+        setIsInitializing(true);
+        const camStatus = await Camera.requestCameraPermission();
+        const micStatus = await Camera.requestMicrophonePermission();
+        
+        if (!isMounted) return;
+        
+        if (camStatus !== 'granted' || micStatus !== 'granted') {
+          setHasPermission(false);
+          setIsInitializing(false);
+          return;
+        }
+        
+        setHasPermission(true);
+
+        // Hardware settling delay
+        await new Promise(resolve => setTimeout(resolve, 600));
+
+        // Manual backup discovery
+        if (!backDevice) {
+          const devices = await Camera.getAvailableCameraDevices();
+          const manualBack = devices.find(d => d.position === 'back');
+          if (manualBack) {
+            setFallbackDevice(manualBack);
+          } else if (devices.length > 0) {
+            setFallbackDevice(devices[0]);
+          }
+        }
+        
+        if (isMounted) {
+          setIsReady(true);
+          setIsInitializing(false);
+        }
+      } catch (err) {
+        console.error('[RealTime] Init error:', err);
+        if (isMounted) setIsInitializing(false);
+      }
     }
-    requestPermission();
-  }, []);
+
+    initialize();
+    sessionStartTime.current = Date.now();
+    return () => { isMounted = false; };
+  }, [backDevice]);
 
   // Frame Processor for MoveNet Real-Time ML
   const frameProcessor = useFrameProcessor((frame) => {
@@ -141,9 +186,18 @@ export function RealTimeAnalysisScreen({ route, navigation }: Props) {
   }, [model, exerciseType]);
 
 
-  if (!hasPermission) return <View style={styles.container}><AppText color="#fff">No Camera Permission</AppText></View>;
-  if (!device) return <View style={styles.container}><AppText color="#fff">No Camera Device Found</AppText></View>;
-  if (!isReady) return <View style={styles.container}><AppText color="#fff">Initializing Camera...</AppText></View>;
+  if (isInitializing) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <AppText color="#fff" style={{ marginTop: 20 }}>Syncing Hardware...</AppText>
+      </View>
+    );
+  }
+
+  if (!hasPermission) return <View style={styles.container}><AppText color="#fff">No Camera/Mic Permission</AppText></View>;
+  if (!activeDevice) return <View style={styles.container}><AppText color="#fff">No Camera Device Found</AppText></View>;
+  if (!isReady) return <View style={styles.container}><AppText color="#fff">Preparing Camera...</AppText></View>;
 
   // Model loading state
   if (model.state === 'loading') {
@@ -168,6 +222,17 @@ export function RealTimeAnalysisScreen({ route, navigation }: Props) {
 
   const handleFinish = async () => {
     if (isFinishing) return;
+    
+    // 2s Minimum Check
+    if (Date.now() - sessionStartTime.current < 2000) {
+      showToast({
+        title: "Session Too Short",
+        message: "Please perform the activity for at least 2 seconds.",
+        type: "info"
+      });
+      return;
+    }
+
     setIsFinishing(true);
 
     try {
@@ -237,7 +302,7 @@ export function RealTimeAnalysisScreen({ route, navigation }: Props) {
     <View style={styles.container}>
       <Camera
         style={StyleSheet.absoluteFill}
-        device={device}
+        device={activeDevice}
         isActive={true}
         format={format}
         fps={30}

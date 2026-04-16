@@ -15,12 +15,15 @@ import { validation } from '@/utils/validation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
+import { useToast } from '@/contexts/ToastContext';
+
 export function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { signInWithGoogle } = useAuth();
+  const { showToast } = useToast();
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -52,7 +55,11 @@ export function LoginScreen({ navigation }: Props) {
       if (error) throw error;
       // Navigation happens automatically via AuthContext update
     } catch (error: any) {
-      Alert.alert('Login Error', error.message);
+      showToast({
+        title: 'Login Error',
+        message: error.message,
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -70,11 +77,12 @@ export function LoginScreen({ navigation }: Props) {
 
       // Ensure activity transition is complete before alerting
       setTimeout(() => {
-        Alert.alert(
-          'Google Login Error',
-          'Could not authenticate with Google. This can sometimes happen if common Google services are still warming up. Please try again in a moment.'
-        );
-      }, 800);
+        showToast({
+          title: 'Google Login Error',
+          message: 'Could not authenticate with Google. Please try again.',
+          type: 'error'
+        });
+      }, 300);
     } finally {
       // Keep loading on for a bit longer to allow for navigation or cleanup
       setTimeout(() => setLoading(false), 2000);
@@ -122,7 +130,7 @@ export function LoginScreen({ navigation }: Props) {
             error={!!errors.password}
             errorMessage={errors.password}
           />
-          <Pressable style={styles.inlineLink} onPress={() => Alert.alert('Reset Password', 'Feature coming soon!')}>
+          <Pressable style={styles.inlineLink} onPress={() => showToast({ title: 'Coming Soon', message: 'Password reset feature is being finalized.', type: 'info' })}>
             <AppText variant='body' color={theme.colors.primary} weight='medium'>
               Forgot Password?
             </AppText>

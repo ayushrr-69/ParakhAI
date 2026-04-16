@@ -171,11 +171,21 @@ export function HomeScreen({ navigation }: Props) {
               const bgColors = [theme.colors.lavender, theme.colors.success, theme.colors.accentOrange];
               const cardBg = bgColors[idx % bgColors.length];
               return (
-                <View 
+                <Pressable 
                   key={session.id} 
-                  style={[
+                  onPress={() => {
+                    navigation.navigate(routes.analysisResults as any, { 
+                      session, 
+                      exerciseType: session.exerciseType 
+                    });
+                  }}
+                  style={({ pressed }) => [
                     styles.activityCard, 
-                    { backgroundColor: cardBg }
+                    { 
+                      backgroundColor: cardBg,
+                      opacity: pressed ? 0.9 : 1,
+                      transform: [{ scale: pressed ? 0.98 : 1 }]
+                    }
                   ]}
                 >
                   <View style={[styles.activityIcon, { backgroundColor: theme.colors.textDark }]}>
@@ -194,7 +204,7 @@ export function HomeScreen({ navigation }: Props) {
                   <View style={[styles.scoreBadge, { backgroundColor: 'rgba(0,0,0,0.08)' }]}>
                     <AppText variant="bodySmall" weight="bold" color={theme.colors.textDark}>{session.qualityScore || 0}%</AppText>
                   </View>
-                </View>
+                </Pressable>
               );
             })
           ) : (

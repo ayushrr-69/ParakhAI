@@ -11,8 +11,11 @@ import { coachService } from '@/services/coach';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CoachReview'>;
 
+import { useToast } from '@/contexts/ToastContext';
+
 export function CoachReviewScreen({ route, navigation }: Props) {
   const { submissionId, athleteName, sessionData } = route.params;
+  const { showToast } = useToast();
   const [feedback, setFeedback] = useState('');
   const [rating, setRating] = useState(5);
   const [submitting, setSubmitting] = useState(false);
@@ -21,7 +24,11 @@ export function CoachReviewScreen({ route, navigation }: Props) {
   const handleSubmit = async () => {
     if (!feedback.trim()) {
       setError(true);
-      Alert.alert("Required", "Please provide technical feedback for the athlete.");
+      showToast({
+        title: "Required",
+        message: "Please provide technical feedback for the athlete.",
+        type: "info"
+      });
       return;
     }
 
@@ -34,10 +41,18 @@ export function CoachReviewScreen({ route, navigation }: Props) {
     );
 
     if (success) {
-      Alert.alert("Success", "Feedback shared with " + athleteName);
+      showToast({
+        title: "Success",
+        message: "Feedback shared with " + athleteName,
+        type: "success"
+      });
       navigation.goBack();
     } else {
-      Alert.alert("Error", "Failed to submit feedback.");
+      showToast({
+        title: "Error",
+        message: "Failed to submit feedback.",
+        type: "error"
+      });
     }
     setSubmitting(false);
   };

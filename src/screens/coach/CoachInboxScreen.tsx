@@ -19,9 +19,12 @@ import { supabase } from '@/lib/supabase';
 // Submission cards cycle through these colors
 const SUBMISSION_COLORS = [theme.colors.lavender, theme.colors.success, theme.colors.yellow];
 
+import { useToast } from '@/contexts/ToastContext';
+
 export function CoachInboxScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { profile } = useAuth();
+  const { showToast } = useToast();
   const [inbox, setInbox] = useState<Submission[]>([]);
   const [requests, setRequests] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,15 +51,20 @@ export function CoachInboxScreen() {
   const handleEnrollment = async (enrollmentId: string, status: 'accepted' | 'rejected') => {
     const success = await coachService.updateEnrollmentStatus(enrollmentId, status);
     if (success) {
-      Alert.alert(
-        status === 'accepted' ? 'Athlete Accepted' : 'Request Declined',
-        status === 'accepted'
+      showToast({
+        title: status === 'accepted' ? 'Athlete Accepted' : 'Request Declined',
+        message: status === 'accepted'
           ? 'The athlete now appears in your team list.'
           : 'The request has been removed.',
-      );
+        type: status === 'accepted' ? 'success' : 'info'
+      });
       loadData();
     } else {
-      Alert.alert('Error', 'Failed to update enrollment status.');
+      showToast({
+        title: 'Error',
+        message: 'Failed to update enrollment status.',
+        type: 'error'
+      });
     }
   };
 
@@ -231,7 +239,7 @@ export function CoachInboxScreen() {
                           </AppText>
                         </View>
                         <AppText variant="bodySmall" color={theme.colors.nearBlack} style={{ opacity: 0.7 }}>
-                          {item.session?.total_reps ?? '—'} reps recorded
+                          {item.session?.total_reps ?? '—'} reps · {item.session?.quality_score ?? '--'}% Quality
                         </AppText>
                       </View>
 

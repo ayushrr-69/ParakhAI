@@ -102,8 +102,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIsLatestSessionShared(!!existing);
       }
 
-      // Find active enrollment
-      const activeEnrollment = newEnrollHistory.find(e => e.status === 'accepted' || e.status === 'pending');
+      // Find active or recent enrollment
+      const activeEnrollment = newEnrollHistory.find(e => 
+        e.status === 'accepted' || e.status === 'pending' || e.status === 'rejected'
+      );
       setEnrollment(activeEnrollment || null);
 
       if (profile.coach_id) {

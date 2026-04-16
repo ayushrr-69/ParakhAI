@@ -42,6 +42,11 @@
         "android.permission.ACCESS_FINE_LOCATION"
       ],
       "package": "com.ayushrr.sportsperformancetracker"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9ce497e8-6f1d-46af-b3ae-12874e9cbe13"
+      }
     }
   }
 }

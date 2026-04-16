@@ -14,7 +14,10 @@ import { validation } from '@/utils/validation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
+import { useToast } from '@/contexts/ToastContext';
+
 export function SignUpScreen({ navigation }: Props) {
+  const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -65,11 +68,19 @@ export function SignUpScreen({ navigation }: Props) {
       if (data.session) {
         // Navigation happens automatically via AuthContext update
       } else {
-        Alert.alert('Verify Email', 'Check your inbox to verify your account!');
+        showToast({
+          title: 'Verify Email',
+          message: 'Check your inbox to verify your account!',
+          type: 'success'
+        });
         navigation.navigate(routes.login);
       }
     } catch (error: any) {
-      Alert.alert('Sign Up Error', error.message);
+      showToast({
+        title: 'Sign Up Error',
+        message: error.message,
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -124,12 +135,13 @@ export function SignUpScreen({ navigation }: Props) {
             onChangeText={(text) => {
               setPassword(text);
               if (errors.password) setErrors(prev => {
-                const { password, ...rest } = prev;
+                const { password: _p, ...rest } = prev;
                 return rest;
               });
             }}
             error={!!errors.password}
             errorMessage={errors.password}
+            strength={validation.getPasswordStrength(password)}
           />
           <AppButton 
             label={loading ? 'Creating account...' : 'Sign Up'} 

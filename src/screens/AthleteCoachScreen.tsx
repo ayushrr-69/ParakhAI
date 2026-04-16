@@ -11,11 +11,14 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { routes } from '@/constants/routes';
 import { historyService } from '@/services/history';
 import { coachService, Feedback } from '@/services/coach';
+import { useToast } from '@/contexts/ToastContext';
+import { useNetwork } from '@/contexts/NetworkContext';
 import { supabase } from '@/lib/supabase';
 
 export function AthleteCoachScreen() {
   const { profile } = useAuth();
   const navigation = useNavigation<any>();
+  const { showToast } = useToast();
   const {
     history,
     reviewHistory,
@@ -84,24 +87,65 @@ export function AthleteCoachScreen() {
     };
   }, [profile?.id, refreshAll]);
 
+  const { isConnected } = useNetwork();
+  const [isRetrying, setIsRetrying] = useState(false);
+
   const handleShare = async () => {
     if (!profile?.coach_id) {
-      Alert.alert("No Coach", "You haven't been assigned a coach yet.");
+      showToast({
+        title: "No Coach",
+        message: "You haven't been assigned a coach yet.",
+        type: "info"
+      });
       return;
     }
+
+    if (!isConnected) {
+      showToast({
+        title: "Network Unstable",
+        message: "Please check your internet connection and try again.",
+        type: "error"
+      });
+      setIsRetrying(true);
+      return;
+    }
+
+    if (enrollment?.status === 'pending') {
+      showToast({
+        title: "Approval Pending",
+        message: "Your coach hasn't accepted your enrollment yet. Please wait for their approval.",
+        type: "info"
+      });
+      return;
+    }
+
     try {
       if (history.length === 0) {
-        Alert.alert("No Data", "Perform a training session first to share results!");
+        showToast({
+          title: "No Data",
+          message: "Perform a training session first to share results!",
+          type: "info"
+        });
         return;
       }
       const latestSession = history[0];
       const success = await coachService.createSubmission(latestSession.id, profile.coach_id);
       if (success) {
+        setIsRetrying(false);
         refreshAll(); // Update sharing status globally
-        Alert.alert("Success!", "Your latest session has been sent to " + coachName);
+        showToast({
+          title: "Success",
+          message: "Your latest session has been sent to " + coachName,
+          type: "success"
+        });
       }
     } catch (e) {
-      Alert.alert("Error", "Failed to share progress.");
+      setIsRetrying(true);
+      showToast({
+        title: "Error",
+        message: "Failed to share progress. Try again when you're online.",
+        type: "error"
+      });
     }
   };
 
@@ -208,7 +252,7 @@ export function AthleteCoachScreen() {
             </View>
           </View>
 
-          {enrollment && (!profile?.coach_id || enrollment.status === 'pending' || enrollment.status === 'rejected') && (
+          {enrollment && (enrollment.status === 'pending' || enrollment.status === 'rejected') && (
             <View style={[styles.statusBanner, enrollment.status === 'pending' ? styles.pendingBanner : styles.rejectedBanner]}>
               <View style={styles.bannerHeader}>
                 <View style={[styles.bannerDot, { backgroundColor: theme.colors.textDark }]} />
@@ -328,18 +372,29 @@ export function AthleteCoachScreen() {
                 </View>
               </View>
 
-              <View style={[styles.shareCard, { backgroundColor: theme.colors.success }]}>
+              <View style={[styles.shareCard, { backgroundColor: (isRetrying || !isConnected) && !shared ? theme.colors.accentOrange : theme.colors.success }]}>
                 <View style={styles.shareInfo}>
-                  <AppText variant="title" weight="bold" color={theme.colors.textDark}>Share Progress</AppText>
-                  <AppText variant="body" weight="medium" color={theme.colors.textDark} style={{ opacity: 0.7 }}>Ready to get analyzed? Send your latest training data to your coach for professional feedback.</AppText>
+                  <AppText variant="title" weight="bold" color={theme.colors.textDark}>
+                    {(isRetrying || !isConnected) && !shared ? "Connectivity Issue" : "Share Progress"}
+                  </AppText>
+                  <AppText variant="body" weight="medium" color={theme.colors.textDark} style={{ opacity: 0.7 }}>
+                    {!isConnected && !shared
+                      ? "You are currently offline. Your results are safe, but you'll need a connection to share with your coach."
+                      : "Ready to get analyzed? Send your latest training data to your coach for professional feedback."
+                    }
+                  </AppText>
                 </View>
                 <Pressable 
                   onPress={handleShare}
-                  style={[styles.shareBtn, shared && styles.shareBtnDisabled, { backgroundColor: shared ? 'rgba(0,0,0,0.1)' : theme.colors.textDark }]}
-                  disabled={shared}
+                  style={[
+                    styles.shareBtn, 
+                    shared && styles.shareBtnDisabled, 
+                    { backgroundColor: shared ? 'rgba(0,0,0,0.1)' : theme.colors.textDark }
+                  ]}
+                  disabled={shared && !isRetrying}
                 >
                   <AppText variant="body" weight="bold" color={shared ? theme.colors.textDark : theme.colors.textPrimary}>
-                    {shared ? "LATEST SESSION SHARED" : "SHARE PROGRESS"}
+                    {isRetrying ? "TRY AGAIN" : shared ? "LATEST SESSION SHARED" : "SHARE PROGRESS"}
                   </AppText>
                 </Pressable>
               </View>

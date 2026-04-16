@@ -17,17 +17,17 @@ export function PlaceholderScreen({ navigation, route }: Props) {
 
   return (
     <AppShell scrollable hasTabBar={true} footerMode='sticky'>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          {canGoBack && (
-            <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-              <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-                <Path d="M15 18l-6-6 6-6" stroke={theme.colors.nearBlack} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </Pressable>
-          )}
-        </View>
+      <View style={styles.header}>
+        {canGoBack && (
+          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+              <Path d="M15 18l-6-6 6-6" stroke={theme.colors.nearBlack} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </Pressable>
+        )}
+      </View>
 
+      <View style={styles.container}>
         <View style={styles.brandMark}>
           <View style={[styles.brandChip, { backgroundColor: theme.colors.primary }]} />
           <View style={[styles.brandChip, { backgroundColor: theme.colors.success }]} />

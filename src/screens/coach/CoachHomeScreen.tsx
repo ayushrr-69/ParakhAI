@@ -258,7 +258,7 @@ export function CoachHomeScreen() {
                       >
                         <View style={styles.galleryAvatar} pointerEvents="none">
                           <AppText variant="body" weight="bold" color={theme.colors.textDark}>
-                            {sub.session?.quality ?? '??'}%
+                            {sub.session?.quality_score ?? '??'}%
                           </AppText>
                         </View>
                         <View style={{ alignItems: 'center' }} pointerEvents="none">

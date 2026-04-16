@@ -53,3 +53,12 @@ local.properties
 node_modules/
 bin/
 out/
+
+# Build Logs & Caches
+*.log
+.gradle_home/
+android/.kotlin/
+android/app/src/main/assets/
+
+# Secrets (Moved to local only)
+android/app/google-services.json

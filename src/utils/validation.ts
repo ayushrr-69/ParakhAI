@@ -26,7 +26,7 @@ export const validation = {
   username: (username: string) => {
     const trimmed = username.trim();
     if (trimmed.length < 3 || trimmed.length > 15) return false;
-    const regex = /^[a-zA-Z0-9_]+$/;
+    const regex = /^[a-z0-9_]+$/;
     return regex.test(trimmed);
   },
 
@@ -42,7 +42,7 @@ export const validation = {
         .eq('username', username.trim());
 
       if (excludeUserId) {
-        query = query.ne('id', excludeUserId);
+        query = query.neq('id', excludeUserId);
       }
 
       const { count, error } = await query;
@@ -74,5 +74,18 @@ export const validation = {
   longText: (text: string, maxLen: number = 500) => {
     const trimmed = text.trim();
     return trimmed.length <= maxLen;
+  },
+
+  /**
+   * Calculates password strength score (0-4).
+   */
+  getPasswordStrength: (password: string) => {
+    let score = 0;
+    if (!password) return 0;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    return score;
   }
 };

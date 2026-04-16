@@ -15,9 +15,12 @@ import { routes } from '@/constants/routes';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AnalysisResults'>;
 
+import { useToast } from '@/contexts/ToastContext';
+
 export function AnalysisResultsScreen({ route, navigation }: Props) {
   const { results, session, exerciseType, coachFeedback, coachName } = route.params;
   const { profile } = useAuth();
+  const { showToast } = useToast();
   const [isSharing, setIsSharing] = React.useState(false);
   const [hasShared, setHasShared] = React.useState(false);
   const [showPrompt, setShowPrompt] = React.useState(!!results && !coachFeedback); // Show if fresh result and not viewing history with feedback
@@ -57,12 +60,20 @@ export function AnalysisResultsScreen({ route, navigation }: Props) {
       if (success) {
         setHasShared(true);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        Alert.alert('Shared!', 'Your session has been sent to your coach for review.');
+        showToast({
+          title: 'Shared!',
+          message: 'Your session has been sent to your coach for review.',
+          type: 'success'
+        });
       } else {
         throw new Error('Failed to share session');
       }
     } catch (err: any) {
-      Alert.alert('Sharing Failed', err.message || 'Could not send to coach');
+      showToast({
+        title: 'Sharing Failed',
+        message: err.message || 'Could not send to coach',
+        type: 'error'
+      });
     } finally {
       setIsSharing(false);
     }
