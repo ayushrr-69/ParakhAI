@@ -62,7 +62,7 @@ export const messagingService = {
     // Generate a consistent channel name for this specific pair of users
     const roomId = [currentUserId, targetUserId].sort().join('_');
     
-    return supabase
+    const channel = supabase
       .channel(`chat:${roomId}`)
       .on(
         'postgres_changes',
@@ -70,21 +70,31 @@ export const messagingService = {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          // Optionally add filter if your Supabase project supports it for performance:
-          // filter: `sender_id=in.(${currentUserId},${targetUserId})`
+          // Note: Real-time filters are most reliable when enabled in the DB, 
+          // but we'll use participant logic to ensure "Instant" delivery
         },
         (payload) => {
           const newMsg = payload.new as Message;
-          // Security/Context check: only fire if this message is part of the conversation
-          const isParticipant = 
+          
+          // Logic check: only process if this message belongs to THIS conversation
+          const isRelevant = 
             (newMsg.sender_id === currentUserId && newMsg.receiver_id === targetUserId) ||
             (newMsg.sender_id === targetUserId && newMsg.receiver_id === currentUserId);
 
-          if (isParticipant) {
+          if (isRelevant) {
+            console.log('[Realtime] New relevant message received:', newMsg.id);
             onNewMessage(newMsg);
           }
         }
-      )
-      .subscribe();
+      );
+
+    channel.subscribe((status) => {
+      console.log(`[Realtime] Subscription status for roomId ${roomId}:`, status);
+      if (status === 'CHANNEL_ERROR') {
+        console.error('[Realtime] Failed to connect to chat channel. Check DB replication settings.');
+      }
+    });
+
+    return channel;
   }
 };

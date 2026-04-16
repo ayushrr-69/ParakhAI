@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Pressable } from 'react-native';
+import { StyleSheet, View, Pressable, ActivityIndicator } from 'react-native';
 import { Camera, useCameraDevice, useFrameProcessor, useCameraFormat } from 'react-native-vision-camera';
 import { useTensorflowModel } from 'react-native-fast-tflite';
 import { useSharedValue, Worklets } from 'react-native-worklets-core';
@@ -70,16 +70,19 @@ export function RealTimeAnalysisScreen({ route, navigation }: Props) {
 
   useEffect(() => {
     let isMounted = true;
+    let pollInterval: any;
     
     async function initialize() {
       try {
         setIsInitializing(true);
+        console.log('[RealTime] Requesting permissions...');
         const camStatus = await Camera.requestCameraPermission();
         const micStatus = await Camera.requestMicrophonePermission();
         
         if (!isMounted) return;
         
-        if (camStatus !== 'granted' || micStatus !== 'granted') {
+        if (camStatus !== 'granted') {
+          console.error('[RealTime] Camera permission denied');
           setHasPermission(false);
           setIsInitializing(false);
           return;
@@ -87,23 +90,44 @@ export function RealTimeAnalysisScreen({ route, navigation }: Props) {
         
         setHasPermission(true);
 
-        // Hardware settling delay
-        await new Promise(resolve => setTimeout(resolve, 600));
-
-        // Manual backup discovery
-        if (!backDevice) {
+        // Hardware discovery polling
+        let attempts = 0;
+        const scan = async () => {
+          if (!isMounted) return false;
+          
+          console.log(`[RealTime] Attempt ${attempts + 1}: Scanning for devices...`);
           const devices = await Camera.getAvailableCameraDevices();
-          const manualBack = devices.find(d => d.position === 'back');
-          if (manualBack) {
-            setFallbackDevice(manualBack);
-          } else if (devices.length > 0) {
-            setFallbackDevice(devices[0]);
+          console.log(`[RealTime] Found ${devices.length} devices.`);
+          
+          if (devices.length > 0) {
+            const manualBack = devices.find(d => d.position === 'back');
+            if (manualBack) {
+              console.log('[RealTime] Found back camera:', manualBack.id);
+              setFallbackDevice(manualBack);
+            } else {
+              console.log('[RealTime] No back camera, using:', devices[0].id);
+              setFallbackDevice(devices[0]);
+            }
+            setIsReady(true);
+            setIsInitializing(false);
+            return true;
           }
-        }
-        
-        if (isMounted) {
-          setIsReady(true);
-          setIsInitializing(false);
+          attempts++;
+          return false;
+        };
+
+        const found = await scan();
+        if (!found) {
+          pollInterval = setInterval(async () => {
+            const success = await scan();
+            if (success || attempts >= 10) { // Polling for 10s if needed
+              clearInterval(pollInterval);
+              setIsInitializing(false);
+              if (!success && isMounted) {
+                 console.error('[RealTime] Failed to find any camera devices after 10 attempts');
+              }
+            }
+          }, 1000);
         }
       } catch (err) {
         console.error('[RealTime] Init error:', err);
@@ -113,7 +137,10 @@ export function RealTimeAnalysisScreen({ route, navigation }: Props) {
 
     initialize();
     sessionStartTime.current = Date.now();
-    return () => { isMounted = false; };
+    return () => { 
+      isMounted = false;
+      if (pollInterval) clearInterval(pollInterval);
+    };
   }, [backDevice]);
 
   // Frame Processor for MoveNet Real-Time ML
@@ -195,26 +222,57 @@ export function RealTimeAnalysisScreen({ route, navigation }: Props) {
     );
   }
 
-  if (!hasPermission) return <View style={styles.container}><AppText color="#fff">No Camera/Mic Permission</AppText></View>;
-  if (!activeDevice) return <View style={styles.container}><AppText color="#fff">No Camera Device Found</AppText></View>;
-  if (!isReady) return <View style={styles.container}><AppText color="#fff">Preparing Camera...</AppText></View>;
+  if (!hasPermission) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <AppText color={theme.colors.error} variant="heading">Access Required</AppText>
+        <AppText color="#fff" style={{ marginTop: 12, textAlign: 'center', opacity: 0.7 }}>
+          Please grant camera permissions in your device settings to use live analysis.
+        </AppText>
+        <Pressable onPress={() => navigation.goBack()} style={[styles.finishButton, { marginTop: 24 }]}>
+          <AppText color={theme.colors.textDark} weight="bold">Go Back</AppText>
+        </Pressable>
+      </View>
+    );
+  }
+
+  if (!activeDevice || !isReady) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <AppText color={theme.colors.error} variant="heading">Hardware Unavailable</AppText>
+        <AppText color="#fff" style={{ marginTop: 12, textAlign: 'center', opacity: 0.7 }}>
+          We couldn't find a camera device. Please ensure your camera is not being used by another app.
+        </AppText>
+        <Pressable 
+          onPress={() => navigation.replace('RealTimeAnalysis', { exerciseType })} 
+          style={[styles.finishButton, { marginTop: 24 }]}
+        >
+          <AppText color={theme.colors.textDark} weight="bold">Scan Again</AppText>
+        </Pressable>
+      </View>
+    );
+  }
 
   // Model loading state
   if (model.state === 'loading') {
     return (
-      <View style={styles.container}>
-        <AppText variant="title">Loading AI Model...</AppText>
+      <View style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <AppText variant="title" style={{ marginTop: 20 }}>Loading AI Model...</AppText>
       </View>
     );
   }
 
   if (model.state === 'error') {
      return (
-      <View style={styles.container}>
-        <AppText color={theme.colors.error}>Error: Model missing in assets/</AppText>
-        <AppText variant="bodySmall" style={{marginTop: 10, textAlign: 'center'}}>
-          Please add "movenet_lightning.tflite" to "src/assets/models/"
+      <View style={[styles.container, styles.center]}>
+        <AppText color={theme.colors.error} variant="heading">Model Error</AppText>
+        <AppText color="#fff" style={{ marginTop: 12, textAlign: 'center', opacity: 0.7 }}>
+          "movenet_lightning.tflite" missing in assets/
         </AppText>
+        <Pressable onPress={() => navigation.goBack()} style={[styles.finishButton, { marginTop: 24 }]}>
+          <AppText color={theme.colors.textDark} weight="bold">Go Back</AppText>
+        </Pressable>
       </View>
     );
   }

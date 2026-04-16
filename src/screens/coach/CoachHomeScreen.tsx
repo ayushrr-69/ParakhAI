@@ -172,11 +172,12 @@ export function CoachHomeScreen() {
                       { backgroundColor: sparkValues[sparkValues.length - 1] >= sparkValues[0] ? 'rgba(69,197,136,0.2)' : 'rgba(255,82,82,0.2)' },
                     ]}>
                       <AppText
-                        variant="bodySmall"
+                        variant="tiny"
                         weight="bold"
                         color={sparkValues[sparkValues.length - 1] >= sparkValues[0] ? theme.colors.success : theme.colors.error}
+                        style={{ letterSpacing: 1 }}
                       >
-                        {sparkValues[sparkValues.length - 1] >= sparkValues[0] ? '↑' : '↓'} Trending
+                        {sparkValues[sparkValues.length - 1] >= sparkValues[0] ? '↑' : '↓'} TREND
                       </AppText>
                     </View>
                   )}

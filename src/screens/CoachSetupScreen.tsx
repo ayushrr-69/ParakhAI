@@ -127,7 +127,10 @@ export function CoachSetupScreen({ navigation }: Props) {
       if (error) throw error;
       
       await refreshProfile();
-      navigation.replace(routes.coachDashboard);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: routes.main as any }],
+      });
     } catch (e: any) {
       console.error('[CoachSetup] Save error:', e);
       setLoading(false);

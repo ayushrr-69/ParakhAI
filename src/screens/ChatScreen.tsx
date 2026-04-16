@@ -32,11 +32,19 @@ export function ChatScreen() {
 
     loadMessages();
 
-    // Real-time subscription — deduplicates & scrolls to end
+    // Real-time subscription - logic specifically scoped to this conversation
     const subscription = messagingService.subscribeToMessages(user!.id, targetUserId, (newMsg) => {
       setMessages(prev => {
+        // Essential: Prevent duplicate messages (especially if real-time fires for our own sent msg)
         if (prev.find(m => m.id === newMsg.id)) return prev;
-        return [...prev, newMsg];
+        
+        // If we have an optimistic message for this content, remove it first
+        // (Simple matching based on content for instant swap)
+        const withoutOptimistic = prev.filter(m => 
+          !(m.id.startsWith('optimistic-') && m.content === newMsg.content)
+        );
+        
+        return [...withoutOptimistic, newMsg];
       });
     });
 
@@ -49,25 +57,31 @@ export function ChatScreen() {
     const text = message.trim();
     if (!text || !targetUserId || sending) return;
 
-    // 1. Optimistically add to local state immediately so it's visible
+    // 1. Optimistic UI update: Immediate feedback for the sender
+    const tempId = `optimistic-${Date.now()}`;
     const optimisticMsg: Message = {
-      id: `optimistic-${Date.now()}`,
+      id: tempId,
       sender_id: user!.id,
       receiver_id: targetUserId,
       content: text,
       created_at: new Date().toISOString(),
     };
+    
     setMessages(prev => [...prev, optimisticMsg]);
     setMessage('');
-    setSending(true);
+    
+    // Auto-scroll to the optimistic message
+    setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
 
-    // 2. Actually send — if success, the real-time sub will swap the optimistic msg
+    // 2. Real transmission
+    setSending(true);
     const sent = await messagingService.sendMessage(targetUserId, text);
     setSending(false);
 
     if (!sent) {
-      // rollback if failed
-      setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
+      // Rollback UI if the message failed to reach the server
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+      setMessage(text); // Put text back in box so they can try again
     }
   };
 

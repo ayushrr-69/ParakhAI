@@ -90,10 +90,17 @@ export function AppNavigator() {
         ) : profile?.role === 'athlete' ? (
           // 4. Athlete Stack
           <>
-            {!profile?.username && (
-              <Stack.Screen name={routes.profileSetup} component={ProfileSetupScreen} />
+            {profile?.username ? (
+              <>
+                <Stack.Screen name={routes.main} component={AthleteNavigator} />
+                <Stack.Screen name={routes.profileSetup} component={ProfileSetupScreen} />
+              </>
+            ) : (
+              <>
+                <Stack.Screen name={routes.profileSetup} component={ProfileSetupScreen} />
+                <Stack.Screen name={routes.main} component={AthleteNavigator} />
+              </>
             )}
-            <Stack.Screen name={routes.main} component={AthleteNavigator} />
             
             <Stack.Screen name={routes.analysis} component={AnalysisScreen} />
             <Stack.Screen name={routes.videoUpload} component={VideoUploadScreen} />
@@ -111,10 +118,17 @@ export function AppNavigator() {
         ) : (
           // 5. Coach Stack
           <>
-            {!profile?.username && (
-              <Stack.Screen name={routes.coachSetup} component={CoachSetupScreen} />
+            {profile?.username ? (
+              <>
+                <Stack.Screen name={routes.main} component={CoachNavigator} />
+                <Stack.Screen name={routes.coachSetup} component={CoachSetupScreen} />
+              </>
+            ) : (
+              <>
+                <Stack.Screen name={routes.coachSetup} component={CoachSetupScreen} />
+                <Stack.Screen name={routes.main} component={CoachNavigator} />
+              </>
             )}
-            <Stack.Screen name={routes.main} component={CoachNavigator} />
             
             <Stack.Screen name={routes.coachReview} component={CoachReviewScreen as any} />
             <Stack.Screen name={routes.coachProfile} component={CoachProfileScreen} />

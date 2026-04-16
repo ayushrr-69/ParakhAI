@@ -32,30 +32,30 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radii.largeCard,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    paddingVertical: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   dayItem: {
     alignItems: 'center',
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: theme.spacing.xs,
+    gap: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
     borderRadius: theme.radii.pill,
   },
   selectedDay: {
     backgroundColor: theme.colors.lavender,
   },
   dateBubble: {
-    width: 28,
-    height: 28,
-    borderRadius: theme.radii.full,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
   },
   selectedDateBubble: {
     backgroundColor: theme.colors.nearBlack,
-    borderRadius: 14, // Exact half of width/height for safety
+    borderRadius: 17,
     overflow: 'hidden',
   },
 });

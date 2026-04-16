@@ -7,7 +7,7 @@ import { AppText } from '@/components/common/AppText';
 import { AppShell } from '@/components/layout/AppShell';
 import { CalendarStrip } from '@/components/home/CalendarStrip';
 import { PerformanceSnap } from '@/components/home/PerformanceSnap';
-import { calendarDays } from '@/constants/content';
+import { getCurrentWeekDays, getTodayKey } from '@/utils/date';
 import { theme } from '@/theme';
 import { RootStackParamList } from '@/types/navigation';
 import { routes } from '@/constants/routes';
@@ -19,20 +19,22 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export function HomeScreen({ navigation }: Props) {
   const { profile } = useAuth();
+  
+  // Dynamic Calendar Data
+  const [calendarDays, setCalendarDays] = useState(getCurrentWeekDays());
+  const [selectedDayKey, setSelectedDayKey] = useState(getTodayKey());
+  
   const [history, setHistory] = useState<Session[]>([]);
   const [stats, setStats] = useState({ score: 0, trend: 0, sparkline: [] as number[] });
   const [teamAvg, setTeamAvg] = useState(0);
 
-  const initialDay = calendarDays.find((item) => item.isSelected)?.key ?? calendarDays[0]?.key ?? 'thu';
-  const [selectedDayKey, setSelectedDayKey] = useState(initialDay);
-  
   const visibleDays = useMemo(
     () =>
       calendarDays.map((item) => ({
         ...item,
         isSelected: item.key === selectedDayKey,
       })),
-    [selectedDayKey],
+    [selectedDayKey, calendarDays],
   );
 
   const calculateQuickStats = (sessions: Session[]) => {

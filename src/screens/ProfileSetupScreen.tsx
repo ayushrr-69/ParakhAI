@@ -302,6 +302,10 @@ export function ProfileSetupScreen({ navigation, route }: Props) {
         navigation.goBack();
       } else {
         await refreshProfile();
+        navigation.reset({
+          index: 0,
+          routes: [{ name: routes.main as any }],
+        });
       }
       setLoading(false);
     } catch (e: any) {
