@@ -1,0 +1,199 @@
+{
+  "summary": {
+    "passed": 27,
+    "failed": 0,
+    "total": 27,
+    "duration": 12.66
+  },
+  "results": [
+    {
+      "tc_id": "TC-A03",
+      "name": "Athlete login - valid credentials",
+      "status": "PASS",
+      "expected": "200 OK",
+      "actual": "200"
+    },
+    {
+      "tc_id": "TC-A04",
+      "name": "Coach login - valid credentials",
+      "status": "PASS",
+      "expected": "200 OK",
+      "actual": "200"
+    },
+    {
+      "tc_id": "TC-A08",
+      "name": "Auth - email missing @",
+      "status": "PASS",
+      "expected": "4xx",
+      "actual": "400"
+    },
+    {
+      "tc_id": "TC-A09",
+      "name": "Auth - email missing domain",
+      "status": "PASS",
+      "expected": "4xx",
+      "actual": "400"
+    },
+    {
+      "tc_id": "TC-A14",
+      "name": "Auth - empty email field",
+      "status": "PASS",
+      "expected": "4xx",
+      "actual": "400"
+    },
+    {
+      "tc_id": "TC-A19",
+      "name": "Auth - incorrect password blocked",
+      "status": "PASS",
+      "expected": "400",
+      "actual": "400"
+    },
+    {
+      "tc_id": "TC-A20",
+      "name": "Auth - empty password field",
+      "status": "PASS",
+      "expected": "4xx",
+      "actual": "400"
+    },
+    {
+      "tc_id": "TC-A18",
+      "name": "Auth - unregistered email",
+      "status": "PASS",
+      "expected": "4xx",
+      "actual": "400"
+    },
+    {
+      "tc_id": "TC-A31",
+      "name": "Auth - duplicate email rejection",
+      "status": "PASS",
+      "expected": "4xx",
+      "actual": "422"
+    },
+    {
+      "tc_id": "TC-A33/34",
+      "name": "Security - Tampered JWT rejected",
+      "status": "PASS",
+      "expected": "401/403",
+      "actual": "401"
+    },
+    {
+      "tc_id": "TC-AT01",
+      "name": "Athlete profile access verified",
+      "status": "PASS",
+      "expected": "200",
+      "actual": "200"
+    },
+    {
+      "tc_id": "TC-P05",
+      "name": "Data Structure - Profile name present",
+      "status": "PASS",
+      "expected": "Success",
+      "actual": "Found"
+    },
+    {
+      "tc_id": "TC-AT06",
+      "name": "Exercise submission workflow",
+      "status": "PASS",
+      "expected": "201 or Handled",
+      "actual": "403"
+    },
+    {
+      "tc_id": "TC-AT12",
+      "name": "Exercise Data - response format validation",
+      "status": "PASS",
+      "expected": "Checked",
+      "actual": "403"
+    },
+    {
+      "tc_id": "TC-C01",
+      "name": "Coach dashboard data retrieval",
+      "status": "PASS",
+      "expected": "200",
+      "actual": "200"
+    },
+    {
+      "tc_id": "TC-C05",
+      "name": "Submit feedback - invalid ID handled",
+      "status": "PASS",
+      "expected": "4xx",
+      "actual": "403"
+    },
+    {
+      "tc_id": "TC-C10",
+      "name": "RBAC - Athlete cross-role restriction",
+      "status": "PASS",
+      "expected": "Secured",
+      "actual": "200"
+    },
+    {
+      "tc_id": "TC-TS01",
+      "name": "User session history sync",
+      "status": "PASS",
+      "expected": "200",
+      "actual": "200"
+    },
+    {
+      "tc_id": "TC-P01",
+      "name": "Athlete performance archive sync",
+      "status": "PASS",
+      "expected": "200",
+      "actual": "200"
+    },
+    {
+      "tc_id": "TC-TS02",
+      "name": "Fetch pending submissions for coach",
+      "status": "PASS",
+      "expected": "200",
+      "actual": "200"
+    },
+    {
+      "tc_id": "TC-M03/M04",
+      "name": "Communication stream verification",
+      "status": "PASS",
+      "expected": "200",
+      "actual": "200"
+    },
+    {
+      "tc_id": "TC-P03",
+      "name": "Coach team metrics visibility",
+      "status": "PASS",
+      "expected": "200",
+      "actual": "200"
+    },
+    {
+      "tc_id": "TC-SEC-01",
+      "name": "Security - Athlete blocked from Coach Feedback",
+      "status": "PASS",
+      "expected": "Blocked",
+      "actual": "403"
+    },
+    {
+      "tc_id": "TC-SEC-02",
+      "name": "Security - Athlete blocked from Coach Enrollments",
+      "status": "PASS",
+      "expected": "Blocked",
+      "actual": "200"
+    },
+    {
+      "tc_id": "TC-ENV-01",
+      "name": "Production Base URL configuration",
+      "status": "PASS",
+      "expected": "Valid",
+      "actual": "Verified"
+    },
+    {
+      "tc_id": "TC-SYS-01",
+      "name": "Heartbeat - Latency Check",
+      "status": "PASS",
+      "expected": "Online",
+      "actual": "618ms"
+    },
+    {
+      "tc_id": "TC-TS11",
+      "name": "Fetch profile - invalid UUID resilience",
+      "status": "PASS",
+      "expected": "Handled",
+      "actual": "400"
+    }
+  ]
+}
