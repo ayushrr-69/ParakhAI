@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, View, Animated, Dimensions, Pressable, TextInput, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, Keyboard, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Svg, { Path } from 'react-native-svg';
@@ -45,6 +45,47 @@ export function CoachSetupScreen({ navigation }: Props) {
 
   const slideAnim = useRef(new Animated.Value(0)).current;
   const totalSteps = 3;
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // REAL-TIME USERNAME VALIDATION (Step 2)
+  useEffect(() => {
+    // Only check if we are on Step 0 and have enough characters to be valid
+    if (step !== 0 || !username || username.length < 3) {
+      if (errors.username && username.length < 3) {
+        setErrors(prev => {
+          const { username, ...rest } = prev;
+          return rest;
+        });
+      }
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      if (!validation.username(username)) {
+        setErrors(prev => ({ ...prev, username: '3-15 chars, lowercase, numbers and underscores only' }));
+        return;
+      }
+
+      setIsCheckingUsername(true);
+      try {
+        const available = await validation.isUsernameAvailable(username, profile?.id);
+        if (!available) {
+          setErrors(prev => ({ ...prev, username: 'Username is already taken' }));
+        } else {
+          setErrors(prev => {
+            const { username, ...rest } = prev;
+            return rest;
+          });
+        }
+      } catch (err) {
+        console.error('[CoachSetup] Username check failed:', err);
+      } finally {
+        setIsCheckingUsername(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [username, step]);
 
   const validateStep = async (currentStep: number) => {
     const newErrors: Record<string, string> = {};
@@ -147,7 +188,14 @@ export function CoachSetupScreen({ navigation }: Props) {
   };
 
   const isStepValid = () => {
-    if (step === 0) return fullName.trim().length > 2 && username.trim().length > 3;
+    if (step === 0) {
+      return (
+        fullName.trim().length > 2 && 
+        username.trim().length >= 3 && 
+        !errors.username && 
+        !isCheckingUsername
+      );
+    }
     if (step === 1) return selectedSpecialties.length > 0;
     if (step === 2) return bio.trim().length > 10;
     return true;
@@ -245,7 +293,12 @@ export function CoachSetupScreen({ navigation }: Props) {
               </View>
 
               <View style={styles.inputGroup}>
-                <AppText variant="bodySmall" weight="bold" color={errors.username ? theme.colors.error : theme.colors.placeholder} style={styles.label}>HANDLE / USERNAME</AppText>
+                <View style={styles.labelRow}>
+                  <AppText variant="bodySmall" weight="bold" color={errors.username ? theme.colors.error : theme.colors.placeholder} style={styles.label}>HANDLE / USERNAME</AppText>
+                  {isCheckingUsername && (
+                    <ActivityIndicator size="small" color={theme.colors.primary} />
+                  )}
+                </View>
                 <View style={[
                   styles.inputContainer, 
                   focusedField === 'user' && styles.inputContainerFocused,
@@ -253,11 +306,11 @@ export function CoachSetupScreen({ navigation }: Props) {
                 ]}>
                   <TextInput 
                     style={styles.input}
-                    placeholder="@coach_handle"
+                    placeholder="coach_handle"
                     placeholderTextColor="rgba(255,255,255,0.2)"
                     value={username}
                     onChangeText={(t) => {
-                      setUsername(t);
+                      setUsername(t.toLowerCase().replace(/[^a-z0-9_]/g, ''));
                       if (errors.username) setErrors(prev => {
                         const { username, ...rest } = prev;
                         return rest;
@@ -269,7 +322,11 @@ export function CoachSetupScreen({ navigation }: Props) {
                     onBlur={() => setFocusedField(null)}
                   />
                 </View>
-                {errors.username && <AppText variant="tiny" color={theme.colors.error} style={styles.errorText}>{errors.username}</AppText>}
+                {errors.username ? (
+                  <AppText variant="tiny" color={theme.colors.error} style={styles.errorText}>{errors.username}</AppText>
+                ) : (
+                  <AppText variant="tiny" color={theme.colors.placeholder} style={styles.hintText}>3-15 chars, lowercase, numbers and underscores only</AppText>
+                )}
               </View>
 
               <View style={styles.inputGroup}>
@@ -439,6 +496,17 @@ const styles = StyleSheet.create({
   },
   bioContainer: { height: 160, paddingTop: 12 },
   bioInput: { height: 130, textAlignVertical: 'top' },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingRight: 8,
+  },
+  hintText: {
+    marginTop: 4,
+    marginLeft: 4,
+    opacity: 0.5,
+  },
   levelRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',

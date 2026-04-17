@@ -40,7 +40,7 @@ export const roleOptions: RoleOption[] = [
     imageAccent: colors.lavender,
   },
   {
-    key: 'official',
+    key: 'coach',
     title: 'Official',
     imageAccent: colors.accentOrange,
   },
